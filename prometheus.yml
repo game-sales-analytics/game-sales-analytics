@@ -16,3 +16,9 @@ scrape_configs:
     static_configs:
       - targets:
         - disk_usage_monitor:9995
+  - job_name: caddy
+    scrape_interval: 5s
+    scrape_timeout: 2s
+    static_configs:
+      - targets:
+        - caddy:2018
