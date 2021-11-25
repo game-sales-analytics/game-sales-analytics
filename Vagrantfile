@@ -19,10 +19,12 @@ Vagrant.configure("2") do |config|
 
   config.vm.box_check_update = true
 
-  config.vm.network "forwarded_port", guest: 9090, host: 9090, host_ip: "127.0.0.1"
-  config.vm.network "forwarded_port", guest: 8888, host: 8888, host_ip: "127.0.0.1"
-  config.vm.network "forwarded_port", guest: 8585, host: 8585, host_ip: "127.0.0.1"
+  config.vm.network "forwarded_port", guest: 3000, host: 3000, host_ip: "127.0.0.1"
   config.vm.network "forwarded_port", guest: 7575, host: 7575, host_ip: "127.0.0.1"
+  config.vm.network "forwarded_port", guest: 8080, host: 8080, host_ip: "127.0.0.1"
+  config.vm.network "forwarded_port", guest: 8585, host: 8585, host_ip: "127.0.0.1"
+  config.vm.network "forwarded_port", guest: 8888, host: 8888, host_ip: "127.0.0.1"
+  config.vm.network "forwarded_port", guest: 9090, host: 9090, host_ip: "127.0.0.1"
 
   config.vm.network "private_network", type: "dhcp"
 
@@ -40,7 +42,7 @@ Vagrant.configure("2") do |config|
   end
 
   config.vm.provision "setup", type: "ansible_local", run: "once" do |an|
-    an.verbose = "vvv"
+    an.verbose = false
     an.provisioning_path = "/home/vagrant/workspace"
     an.playbook = "playbook.yml"
   end
@@ -48,6 +50,6 @@ Vagrant.configure("2") do |config|
   config.vm.provision "bootstrap", after: "setup", type: "shell", run: "always" do |s|
     s.privileged = false
     s.env = { "DOCKER_BUILDKIT" => "1" }.merge(EnvReader.read())
-    s.inline = "docker-compose --project-name gsa --file /home/vagrant/workspace/compose.yml up --detach"
+    s.inline = "docker-compose --project-name gsa --file /home/vagrant/workspace/compose.yml up --detach --quiet-pull"
   end
 end
