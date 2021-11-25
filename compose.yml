@@ -276,6 +276,7 @@ services:
       - gsa
     volumes:
       - grafana_storage:/var/lib/grafana
+      - ./grafana.ini:/etc/grafana/custom.ini:ro
     environment:
       GF_INSTALL_PLUGINS: grafana-clock-panel,grafana-simple-json-datasource
       GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:?}
