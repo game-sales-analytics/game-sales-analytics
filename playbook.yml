@@ -19,7 +19,7 @@
     - name: add git repo
       apt_repository:
         repo: ppa:git-core/ppa
-    - name: Update all packages to their latest version
+    - name: update all packages to their latest version
       apt:
         name: "*"
         state: latest
@@ -30,7 +30,7 @@
           - docker-ce-cli
           - containerd.io
         update_cache: yes
-    - name: set permissions
+    - name: set vagrant user docker permissions
       shell: "usermod -aG docker vagrant"
     - name: install docker-compose
       get_url:
@@ -64,19 +64,3 @@
       file:
         path: /home/vagrant/disk_usage_exporter_linux_amd64
         state: absent
-    - name: copy Prometheus config file
-      copy:
-        src: prometheus.yml
-        dest: /home/vagrant/prometheus.yml
-        owner: vagrant
-        group: vagrant
-        mode: "0644"
-        remote_src: false
-    - name: copy compose.yml file
-      copy:
-        src: compose.yml
-        dest: /home/vagrant/compose.yml
-        owner: vagrant
-        group: vagrant
-        mode: "0644"
-        remote_src: false

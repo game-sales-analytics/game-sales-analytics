@@ -39,13 +39,15 @@ Vagrant.configure("2") do |config|
     vb.cpus = 4
   end
 
-  config.vm.provision "setup", type: "ansible", run: "once" do |an|
+  config.vm.provision "setup", type: "ansible_local", run: "once" do |an|
     an.verbose = "vvv"
+    an.provisioning_path = "/home/vagrant/workspace"
     an.playbook = "playbook.yml"
   end
 
   config.vm.provision "bootstrap", after: "setup", type: "shell", run: "always" do |s|
+    s.privileged = false
     s.env = { "DOCKER_BUILDKIT" => "1" }.merge(EnvReader.read())
-    s.inline = "docker-compose --project-name gsa --file /home/vagrant/compose.yml up --detach"
+    s.inline = "docker-compose --project-name gsa --file /home/vagrant/workspace/compose.yml up --detach"
   end
 end
