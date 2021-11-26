@@ -157,11 +157,9 @@ services:
         condition: service_healthy
       userssrv:
         condition: service_healthy
-    restart: "no"
-    ports:
-      - 8888:8888
+    restart: on-failure
     environment:
-      ASPNETCORE_URLS: http://+:8888
+      ASPNETCORE_URLS: http://+:50051
       REDIS_HOST: cache
       REDIS_PORT: 7658
       REDIS_PASSWORD: ${REDIS_PASSWORD:?}
@@ -175,9 +173,33 @@ services:
       test:
         - CMD
         - ./Ping
-        - http://coresrv:8888
+        - http://coresrv:50051
       interval: 5s
       timeout: 2s
+      retries: 2
+      start_period: 5s
+  gateway:
+    container_name: gateway_app
+    image: docker.io/xeptore/gsa-gateway:1
+    networks:
+      - gsa
+    depends_on:
+      coresrv:
+        condition: service_healthy
+      userssrv:
+        condition: service_healthy
+    restart: on-failure
+    environment:
+      GATEWAY_USERSSRV_HOST: userssrv
+      GATEWAY_USERSSRV_PORT: 50050
+      GATEWAY_CORESRV_HOST: coresrv
+      GATEWAY_CORESRV_PORT: 50051
+      GATEWAY_LISTEN_HOST: gateway
+      GATEWAY_LISTEN_PORT: 9292
+    healthcheck:
+      test: wget --quiet --tries=1 --spider http://gateway:9292/ping
+      interval: 5s
+      timeout: 5s
       retries: 2
       start_period: 5s
   cadvisor:
@@ -328,6 +350,7 @@ services:
       - 8080:8080
       - 8585:8585
       - 9090:9090
+      - 9292:9292
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
       - caddy_data:/data
@@ -346,6 +369,8 @@ services:
       - gsa
     depends_on:
       prometheus:
+        condition: service_healthy
+      gateway:
         condition: service_healthy
       grafana:
         condition: service_healthy
