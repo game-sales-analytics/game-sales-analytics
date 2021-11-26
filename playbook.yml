@@ -19,7 +19,7 @@
     - name: add git repo
       apt_repository:
         repo: ppa:git-core/ppa
-    - name: update all packages to their latest version
+    - name: update all packages
       apt:
         name: "*"
         state: latest
