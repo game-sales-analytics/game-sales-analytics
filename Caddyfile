@@ -32,6 +32,10 @@
 	reverse_proxy core_db_admin:8585
 }
 
+:9292 {
+	reverse_proxy gateway:9292
+}
+
 :9090 {
 	basicauth bcrypt {
 		{$MONITORING_ADMIN_USER} {$MONITORING_ADMIN_PASSWORD}
