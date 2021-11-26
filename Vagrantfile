@@ -48,7 +48,15 @@ Vagrant.configure("2") do |config|
     an.playbook = "playbook.yml"
   end
 
-  config.vm.provision "bootstrap", after: "setup", type: "shell", run: "always" do |s|
+  config.vm.provision "reboot", after: "setup", type: "shell", run: "once" do |s|
+    s.name = "reboot"
+    s.privileged = true
+    s.reboot = true
+    s.inline = "echo rebooting the machine"
+  end
+
+  config.vm.provision "bootstrap", after: "reboot", type: "shell", run: "always" do |s|
+    s.name = "bootstrap"
     s.privileged = false
     s.env = { "DOCKER_BUILDKIT" => "1" }.merge(EnvReader.read())
     s.inline = "docker-compose --project-name gsa --file /home/vagrant/workspace/compose.yml up --detach --quiet-pull"
