@@ -1,13 +1,10 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-require "./env.rb"
-
-
 Vagrant.configure("2") do |config|
   config.vm.box = "generic/ubuntu2110"
 
-  config.vm.box_version = "3.5.2"
+  config.vm.box_version = "3.5.4"
 
   config.vm.box_url = "https://vagrantcloud.com/generic/ubuntu2110"
 
@@ -19,17 +16,23 @@ Vagrant.configure("2") do |config|
 
   config.vm.box_check_update = true
 
-  config.vm.network "forwarded_port", guest: 3000, host: 3000, host_ip: "127.0.0.1"
-  config.vm.network "forwarded_port", guest: 7575, host: 7575, host_ip: "127.0.0.1"
-  config.vm.network "forwarded_port", guest: 8080, host: 8080, host_ip: "127.0.0.1"
-  config.vm.network "forwarded_port", guest: 8585, host: 8585, host_ip: "127.0.0.1"
-  config.vm.network "forwarded_port", guest: 8888, host: 8888, host_ip: "127.0.0.1"
-  config.vm.network "forwarded_port", guest: 9090, host: 9090, host_ip: "127.0.0.1"
-  config.vm.network "forwarded_port", guest: 9292, host: 9292, host_ip: "127.0.0.1"
+  {
+    2018 => 2018,
+    2019 => 2019,
+    8686 => 8686,
+    3000 => 3000,
+    7575 => 7575,
+    8080 => 8080,
+    8086 => 8086,
+    8888 => 8888,
+    8585 => 8585,
+    9090 => 9090,
+    9292 => 9292,
+  }.each { |host, guest| config.vm.network "forwarded_port", guest: guest, host: host, host_ip: "127.0.0.1" }
 
   config.vm.network "private_network", type: "dhcp"
 
-  config.vm.synced_folder ".", "/home/vagrant/workspace", type: "virtualbox", SharedFoldersEnableSymlinksCreate: false
+  config.vm.synced_folder ".", "/home/vagrant/workspace", id: "host_workspace", type: "virtualbox", owner: "root", group: "root", mount_options: ["ro", "dmode=755", "fmode=644"], SharedFoldersEnableSymlinksCreate: false
 
   config.vm.hostname = "gsa"
 
@@ -53,12 +56,5 @@ Vagrant.configure("2") do |config|
     s.privileged = true
     s.reboot = true
     s.inline = "echo rebooting the machine"
-  end
-
-  config.vm.provision "bootstrap", after: "reboot", type: "shell", run: "always" do |s|
-    s.name = "bootstrap"
-    s.privileged = false
-    s.env = { "DOCKER_BUILDKIT" => "1" }.merge(EnvReader.read())
-    s.inline = "docker-compose --project-name gsa --file /home/vagrant/workspace/compose.yml up --detach --quiet-pull"
   end
 end
