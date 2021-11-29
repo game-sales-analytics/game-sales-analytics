@@ -11,5 +11,6 @@
 ### Ansible ###
 *.retry
 
-# Environment variables file
-/.env
+# Environment variables files
+/.env.app
+/.env.monitoring
