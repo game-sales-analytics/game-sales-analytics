@@ -34,9 +34,9 @@
       shell: "usermod -aG docker vagrant"
     - name: install docker-compose
       get_url:
-        url: https://github.com/docker/compose/releases/download/v2.1.1/docker-compose-linux-x86_64
+        url: https://github.com/docker/compose/releases/download/v2.2.0/docker-compose-linux-x86_64
         dest: /usr/local/bin/docker-compose
-        checksum: sha512:6fc45495024974c748d1c94b4b0971958d38b1d425ac599383c4b4173482710df6eb1195275352503f2b92e02e1c1dd4ecf4b8d16871729ae2f61a3490fdff15
+        checksum: sha512:2473b47a0c063cac5ba183267b30913093b09659b63ef60ae7080b3adc30dfed483e227071f6ea81406415fe543af2237e9b1b492f20e72da87836b9d3f2f274
         mode: "0755"
     - name: download Prometheus disk usage exporter
       get_url:
