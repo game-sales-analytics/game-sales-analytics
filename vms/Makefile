@@ -77,7 +77,7 @@ start-coredb:
 		--restart-condition on-failure \
 		--restart-delay 10s \
 		--restart-max-attempts 4 \
-		--restart-window 20s \
+		--restart-window 10s \
 		docker.io/bitnami/postgresql:14
 .PHONY: start-coredb
 
