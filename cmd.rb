@@ -15,6 +15,9 @@ $worker_vms = {
   "app-2" => {
     labels: ["category=app"],
   },
+  "app-3" => {
+    labels: ["category=app"],
+  },
   "cache" => {
     labels: ["category=cache"],
   },
@@ -28,6 +31,9 @@ $worker_vms = {
     labels: ["category=dmz"],
   },
   "dmz-2" => {
+    labels: ["category=dmz"],
+  },
+  "dmz-3" => {
     labels: ["category=dmz"],
   },
 }

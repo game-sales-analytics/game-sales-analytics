@@ -159,7 +159,7 @@ start-userssrv:
 		--mode replicated \
 		--name userssrv \
 		--network gsa \
-		--replicas 2 \
+		--replicas 3 \
 		--replicas-max-per-node 1 \
 		--restart-condition on-failure \
 		--restart-delay 5s \
@@ -215,7 +215,7 @@ start-coresrv:
 		--mode replicated \
 		--name coresrv \
 		--network gsa \
-		--replicas 2 \
+		--replicas 3 \
 		--replicas-max-per-node 1 \
 		--restart-condition on-failure \
 		--restart-delay 5s \
@@ -244,7 +244,7 @@ start-gateway:
 		--mode replicated \
 		--name gateway \
 		--network gsa \
-		--replicas 1 \
+		--replicas 2 \
 		--replicas-max-per-node 1 \
 		--restart-condition on-failure \
 		--restart-delay 5s \
@@ -274,7 +274,7 @@ start-webserver:
 		--publish published=8181,target=8181 \
 		--publish published=8585,target=8585 \
 		--publish published=9292,target=9292 \
-		--replicas 1 \
+		--replicas 3 \
 		--replicas-max-per-node 1 \
 		--restart-condition on-failure \
 		--restart-delay 5s \

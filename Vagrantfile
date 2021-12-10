@@ -74,7 +74,7 @@ Vagrant.configure("2") do |config|
     end
   end
 
-  (1..2).each do |i|
+  (1..3).each do |i|
     config.vm.define "app-#{i}" do |cfg|
       cfg.vm.hostname = "app-#{i}"
 
@@ -117,7 +117,7 @@ Vagrant.configure("2") do |config|
     end
   end
 
-  (1..2).each do |i|
+  (1..3).each do |i|
     config.vm.define "dmz-#{i}" do |cfg|
       cfg.vm.hostname = "dmz-#{i}"
 
