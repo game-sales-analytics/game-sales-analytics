@@ -25,7 +25,7 @@ Vagrant.configure("2") do |config|
     v.check_guest_additions = false
   end
 
-  config.vm.define "gsa-manager", primary: true do |manager|
+  config.vm.define "manager", primary: true do |manager|
     manager.vm.hostname = "manager"
 
     manager.vm.network "private_network", ip: ip_generator.resume
@@ -44,7 +44,7 @@ Vagrant.configure("2") do |config|
     end
   end
 
-  config.vm.define "gsa-databases" do |cfg|
+  config.vm.define "databases" do |cfg|
     cfg.vm.hostname = "databases"
 
     cfg.vm.network "private_network", ip: ip_generator.resume
@@ -57,7 +57,7 @@ Vagrant.configure("2") do |config|
     end
   end
 
-  config.vm.define "gsa-dbadmins" do |cfg|
+  config.vm.define "dbadmins" do |cfg|
     cfg.vm.hostname = "dbadmins"
 
     cfg.vm.network "private_network", ip: ip_generator.resume
@@ -71,7 +71,7 @@ Vagrant.configure("2") do |config|
   end
 
   (1..2).each do |i|
-    config.vm.define "gsa-app-#{i}" do |cfg|
+    config.vm.define "app-#{i}" do |cfg|
       cfg.vm.hostname = "app-#{i}"
 
       cfg.vm.network "private_network", ip: ip_generator.resume
@@ -85,7 +85,7 @@ Vagrant.configure("2") do |config|
     end
   end
 
-  config.vm.define "gsa-cache" do |cfg|
+  config.vm.define "cache" do |cfg|
     cfg.vm.hostname = "cache"
 
     cfg.vm.network "private_network", ip: ip_generator.resume
@@ -99,7 +99,7 @@ Vagrant.configure("2") do |config|
   end
 
   (1..2).each do |i|
-    config.vm.define "gsa-gateway-#{i}" do |cfg|
+    config.vm.define "gateway-#{i}" do |cfg|
       cfg.vm.hostname = "gateway-#{i}"
 
       cfg.vm.network "private_network", ip: ip_generator.resume
@@ -114,7 +114,7 @@ Vagrant.configure("2") do |config|
   end
 
   (1..2).each do |i|
-    config.vm.define "gsa-dmz-#{i}" do |cfg|
+    config.vm.define "dmz-#{i}" do |cfg|
       cfg.vm.hostname = "dmz-#{i}"
 
       cfg.vm.network "private_network", ip: ip_generator.resume
