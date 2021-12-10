@@ -124,8 +124,8 @@ start-coredbadmin:
 		--env-file dba/.env.core \
 		--health-cmd 'wget --quiet --tries=1 --spider http://coredbadmin:$$PGADMIN_LISTEN_PORT/login' \
 		--health-interval 5s \
-		--health-retries 2 \
-		--health-start-period 10s \
+		--health-retries 8 \
+		--health-start-period 15s \
 		--health-timeout 2s \
 		--hostname coredbadmin \
 		--mode replicated \
