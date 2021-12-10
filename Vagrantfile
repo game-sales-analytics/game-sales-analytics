@@ -22,6 +22,7 @@ Vagrant.configure("2") do |config|
 
   config.vm.provider "virtualbox" do |v|
     v.linked_clone = true
+    v.check_guest_additions = false
   end
 
   config.vm.define "gsa-manager", primary: true do |manager|
