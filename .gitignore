@@ -12,5 +12,5 @@
 *.retry
 
 # Environment variables files
-/.env.app
-/.env.monitoring
+.env.*
+!.env.*.template
