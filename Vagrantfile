@@ -22,6 +22,8 @@ Vagrant.configure("2") do |config|
 
   config.vm.box_check_update = true
 
+  config.ssh.connect_timeout = 3
+
   config.vm.provider "virtualbox" do |v|
     v.linked_clone = true
     v.check_guest_additions = false
