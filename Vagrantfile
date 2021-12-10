@@ -5,6 +5,8 @@ require_relative "ip_generator"
 
 ip_generator = IPGenerator.new
 
+Vagrant.require_version ">= 2.2.19"
+
 Vagrant.configure("2") do |config|
   config.vm.box = "xeptore/ubuntu-docker"
 
