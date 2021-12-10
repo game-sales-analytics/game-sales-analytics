@@ -1,0 +1,28 @@
+{
+	log {
+		output stdout
+		format json
+	}
+	auto_https off
+	admin webserver:2018 {
+		origins localhost:2018
+		enforce_origin
+	}
+}
+
+:8686 {
+	root * /usr/share/caddy/
+	file_server
+}
+
+:8181 {
+	reverse_proxy usersdbadmin:8081
+}
+
+:8585 {
+	reverse_proxy coredbadmin:8585
+}
+
+:9292 {
+	reverse_proxy gateway:9292
+}
