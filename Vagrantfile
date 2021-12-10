@@ -8,17 +8,21 @@ ip_generator = IPGenerator.new
 Vagrant.configure("2") do |config|
   config.vm.box = "xeptore/ubuntu-docker"
 
-  config.vm.box_version = "20211210.3.9"
+  config.vm.box_version = "20211210.8.46"
 
   config.vm.box_url = "https://vagrantcloud.com/xeptore/ubuntu-docker"
 
-  config.vm.box_download_checksum = "00b4e6a4ae6c88f1555e3ab611b3e2af07a70adc614dde3b58a10ff1562f60d622694d58769d64c05370830d3ab36f1f50bc28b1827b5ff83471629c4c5a42cd"
+  config.vm.box_download_checksum = "ac29e6c28b5f6d758065b1821a1b94bab02ad7a3ee932ca484e7f8aefc3a3c34d04fa78c0972666e2978205ed88f89b5b454122656111919b62b1efbe8bd9759"
 
   config.vm.box_download_checksum_type = "sha512"
 
   config.vm.allow_hosts_modification = true
 
   config.vm.box_check_update = true
+
+  config.vm.provider "virtualbox" do |v|
+    v.linked_clone = true
+  end
 
   config.vm.define "gsa-manager", primary: true do |manager|
     manager.vm.hostname = "manager"
