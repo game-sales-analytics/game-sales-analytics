@@ -1,14 +1,18 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
+require_relative "cmd"
+require_relative "ip_generator"
+
+ip_generator = IPGenerator.new
 
 Vagrant.configure("2") do |config|
-  config.vm.box = "generic/ubuntu2110"
+  config.vm.box = "xeptore/ubuntu-docker"
 
-  config.vm.box_version = "3.5.4"
+  config.vm.box_version = "20211210.3.9"
 
-  config.vm.box_url = "https://vagrantcloud.com/generic/ubuntu2110"
+  config.vm.box_url = "https://vagrantcloud.com/xeptore/ubuntu-docker"
 
-  config.vm.box_download_checksum = "30fd67c1b3a6a2fba231006ee87d34f8e9ea29ff7e7d8675343fbc459058b587129ca55d1fc39e66b4104953cc08258704e80829573895ef8aea8fc766d00d88"
+  config.vm.box_download_checksum = "00b4e6a4ae6c88f1555e3ab611b3e2af07a70adc614dde3b58a10ff1562f60d622694d58769d64c05370830d3ab36f1f50bc28b1827b5ff83471629c4c5a42cd"
 
   config.vm.box_download_checksum_type = "sha512"
 
@@ -16,45 +20,106 @@ Vagrant.configure("2") do |config|
 
   config.vm.box_check_update = true
 
-  {
-    2018 => 2018,
-    2019 => 2019,
-    8686 => 8686,
-    3000 => 3000,
-    7575 => 7575,
-    8080 => 8080,
-    8086 => 8086,
-    8888 => 8888,
-    8585 => 8585,
-    9090 => 9090,
-    9292 => 9292,
-  }.each { |host, guest| config.vm.network "forwarded_port", guest: guest, host: host, host_ip: "127.0.0.1" }
+  config.vm.define "gsa-manager", primary: true do |manager|
+    manager.vm.hostname = "manager"
 
-  config.vm.network "private_network", type: "dhcp"
+    manager.vm.network "private_network", ip: ip_generator.resume
 
-  config.vm.synced_folder ".", "/home/vagrant/workspace", id: "host_workspace", type: "virtualbox", owner: "root", group: "root", mount_options: ["ro", "dmode=755", "fmode=644"], SharedFoldersEnableSymlinksCreate: false
+    {
+      8181 => 8181,
+      8585 => 8585,
+      9292 => 9292,
+    }.each { |host, guest| manager.vm.network "forwarded_port", guest: guest, host: host }
 
-  config.vm.hostname = "gsa"
-
-  config.vm.define "gsa-machine"
-
-  config.vm.provider "virtualbox" do |vb|
-    vb.gui = false
-    vb.name = "gsa"
-    vb.memory = 8192
-    vb.cpus = 4
+    manager.vm.provider "virtualbox" do |vb|
+      vb.gui = false
+      vb.name = "gsa-manager"
+      vb.memory = 4096
+      vb.cpus = 2
+    end
   end
 
-  config.vm.provision "setup", type: "ansible_local", run: "once" do |an|
-    an.verbose = false
-    an.provisioning_path = "/home/vagrant/workspace"
-    an.playbook = "playbook.yml"
+  config.vm.define "gsa-databases" do |cfg|
+    cfg.vm.hostname = "databases"
+
+    cfg.vm.network "private_network", ip: ip_generator.resume
+
+    cfg.vm.provider "virtualbox" do |vb|
+      vb.gui = false
+      vb.name = "gsa-databases"
+      vb.memory = 8192
+      vb.cpus = 4
+    end
   end
 
-  config.vm.provision "reboot", after: "setup", type: "shell", run: "once" do |s|
-    s.name = "reboot"
-    s.privileged = true
-    s.reboot = true
-    s.inline = "echo rebooting the machine"
+  config.vm.define "gsa-dbadmins" do |cfg|
+    cfg.vm.hostname = "dbadmins"
+
+    cfg.vm.network "private_network", ip: ip_generator.resume
+
+    cfg.vm.provider "virtualbox" do |vb|
+      vb.gui = false
+      vb.name = "gsa-dbadmins"
+      vb.memory = 4096
+      vb.cpus = 2
+    end
+  end
+
+  (1..2).each do |i|
+    config.vm.define "gsa-app-#{i}" do |cfg|
+      cfg.vm.hostname = "app-#{i}"
+
+      cfg.vm.network "private_network", ip: ip_generator.resume
+
+      cfg.vm.provider "virtualbox" do |vb|
+        vb.gui = false
+        vb.name = "gsa-app-#{i}"
+        vb.memory = 4096
+        vb.cpus = 2
+      end
+    end
+  end
+
+  config.vm.define "gsa-cache" do |cfg|
+    cfg.vm.hostname = "cache"
+
+    cfg.vm.network "private_network", ip: ip_generator.resume
+
+    cfg.vm.provider "virtualbox" do |vb|
+      vb.gui = false
+      vb.name = "gsa-cache"
+      vb.memory = 2048
+      vb.cpus = 2
+    end
+  end
+
+  (1..2).each do |i|
+    config.vm.define "gsa-gateway-#{i}" do |cfg|
+      cfg.vm.hostname = "gateway-#{i}"
+
+      cfg.vm.network "private_network", ip: ip_generator.resume
+
+      cfg.vm.provider "virtualbox" do |vb|
+        vb.gui = false
+        vb.name = "gsa-gateway-#{i}"
+        vb.memory = 8192
+        vb.cpus = 4
+      end
+    end
+  end
+
+  (1..2).each do |i|
+    config.vm.define "gsa-dmz-#{i}" do |cfg|
+      cfg.vm.hostname = "dmz-#{i}"
+
+      cfg.vm.network "private_network", ip: ip_generator.resume
+
+      cfg.vm.provider "virtualbox" do |vb|
+        vb.gui = false
+        vb.name = "gsa-dmz-#{i}"
+        vb.memory = 2048
+        vb.cpus = 2
+      end
+    end
   end
 end
