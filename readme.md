@@ -1,5 +1,7 @@
 # Game Sales Analytics
 
+![Diagram](diagram.png)
+
 ## Setup
 
 ### Prerequisites
