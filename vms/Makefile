@@ -81,9 +81,6 @@ start-coredb:
 		docker.io/bitnami/postgresql:14
 .PHONY: start-coredb
 
-start-dbs: start-usersdb start-coredb
-.PHONY: start-dbs
-
 start-usersdbadmin:
 	docker service create \
 		--constraint 'node.role == worker' \
@@ -140,9 +137,6 @@ start-coredbadmin:
 		--restart-window 5s \
 		docker.io/dpage/pgadmin4:6
 .PHONY: start-coredbadmin
-
-start-dbadmins: start-usersdbadmin start-coredbadmin
-.PHONY: start-dbadmins
 
 start-userssrv:
 	docker service create \
@@ -302,3 +296,6 @@ start-webserver:
 		--restart-window 5s \
 		docker.io/library/caddy:2
 .PHONY:start-webserver
+
+start-all: start-usersdb start-coredb start-usersdbadmin start-coredbadmin start-userssrv start-cache start-coresrv run-prepper start-gateway start-webserver
+.PHONY: start-all
