@@ -124,6 +124,14 @@ module VagrantPlugins
           "vagrant",
           "upload-manager-files",
         )
+
+        Process.wait spawn(
+          "vagrant",
+          "ssh",
+          "--command",
+          "cd vms && make init-all",
+          $manager_vm,
+        )
       end
     end
 
@@ -134,6 +142,37 @@ module VagrantPlugins
       DESC
 
       command("docker-swarm-init") do
+        Command
+      end
+    end
+  end
+
+  module CommandDockerSwarmStart
+    class Command < Vagrant.plugin("2", :command)
+      def self.synopsis
+        "starts the Docker swarm services in manager machine"
+      end
+
+      def execute
+        Process.wait spawn(
+          "vagrant",
+          "ssh",
+          "--command",
+          "cd vms && make start-all",
+          $manager_vm,
+          STDERR => STDERR,
+          STDOUT => STDOUT,
+        )
+      end
+    end
+
+    class Plugin < Vagrant.plugin("2")
+      name "docker-swarm-start command"
+      description <<-DESC
+      The `docker-swarm-start` command starts the Docker swarm services in manager machine.
+      DESC
+
+      command("docker-swarm-start") do
         Command
       end
     end
