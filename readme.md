@@ -37,7 +37,9 @@ Assuming `vagrant` and `vboxmanage` commands are accessible in your command line
 
    - Copy `vms/apps/.env.userssrv.template` to `vms/apps/.env.userssrv`
 
-   Each one of these files is a `KEY=VALUE` pair of options. Consult their commented documentation for further information on what each field is and how they will be used.
+   Each one of these files is a `KEY=VALUE` pair of options. Fill each provided key with the proper value.
+
+   Consult their commented documentation for further information on what each field is and how they will be used.
 
 3. Start machines
 
