@@ -97,6 +97,8 @@ Assuming `vagrant` and `vboxmanage` commands are accessible in your command line
 
      - Password: Application user's password you have set in `vms/dbs/.env.core` (`POSTGRESQL_PASSWORD`)
 
+   Also, <http://localhost:9292> is exposed by the API web server which can be used for API communications.
+
 ### API Documentation
 
 Postman collection for REST APIs is available at: <https://www.postman.com/xeptore/workspace/gsa/collection/6663032-e7ea02bf-4666-4820-a8ff-dfa3ecbf3fbe>
