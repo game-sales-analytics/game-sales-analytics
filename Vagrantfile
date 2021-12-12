@@ -10,11 +10,11 @@ Vagrant.require_version ">= 2.2.19"
 Vagrant.configure("2") do |config|
   config.vm.box = "xeptore/ubuntu-docker"
 
-  config.vm.box_version = "20211211.1.45"
+  config.vm.box_version = "20211212.1.45"
 
   config.vm.box_url = "https://vagrantcloud.com/xeptore/ubuntu-docker"
 
-  config.vm.box_download_checksum = "083324d02a28fb1d9073077029cc9a46acf5c5190595925fcd5c214898466cf426df4b63bbe71b135977656a61a6ba3f0626b3af91b46417744f3252cb6b7ea6"
+  config.vm.box_download_checksum = "d377061369758eeed23299cbb6b80737d8b8e02b0837a3f00c06e7737d19c02d73747dc3f119c2a561398fc23631077944d3882bfbf2a975523b2462a8ad4c02"
 
   config.vm.box_download_checksum_type = "sha512"
 
