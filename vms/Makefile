@@ -150,7 +150,7 @@ start-userssrv:
 		--restart-max-attempts 10 \
 		--restart-window 5s \
 		docker.io/xeptore/gsa-userssrv:3
-.PHONY:start-userssrv
+.PHONY: start-userssrv
 
 start-cache:
 	docker service create \
@@ -176,7 +176,7 @@ start-cache:
 		--restart-max-attempts 10 \
 		--restart-window 5s \
 		docker.io/bitnami/redis:6.2
-.PHONY:start-cache
+.PHONY: start-cache
 
 start-coresrv:
 	docker service create \
@@ -206,7 +206,7 @@ start-coresrv:
 		--restart-max-attempts 10 \
 		--restart-window 5s \
 		docker.io/xeptore/gsa-coresrv:1
-.PHONY:start-coresrv
+.PHONY: start-coresrv
 
 run-prepper:
 	docker service create \
@@ -226,7 +226,7 @@ run-prepper:
 		--restart-max-attempts 10 \
 		--restart-window 5s \
 		docker.io/xeptore/gsa-prepper:1
-.PHONY:run-prepper
+.PHONY: run-prepper
 
 start-gateway:
 	docker service create \
@@ -255,7 +255,7 @@ start-gateway:
 		--restart-max-attempts 10 \
 		--restart-window 5s \
 		docker.io/xeptore/gsa-gateway:1
-.PHONY:start-gateway
+.PHONY: start-gateway
 
 start-webserver:
 	docker service create \
@@ -285,7 +285,8 @@ start-webserver:
 		--restart-max-attempts 10 \
 		--restart-window 5s \
 		docker.io/library/caddy:2
-.PHONY:start-webserver
+.PHONY: start-webserver
+
 
 start-all: start-usersdb start-coredb start-usersdbadmin start-coredbadmin start-userssrv start-cache start-coresrv run-prepper start-gateway start-webserver
 .PHONY: start-all
