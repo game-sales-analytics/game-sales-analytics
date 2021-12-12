@@ -36,6 +36,7 @@ Vagrant.configure("2") do |config|
 
     {
       8181 => 8181,
+      8383 => 8383,
       8585 => 8585,
       9292 => 9292,
     }.each { |host, guest| manager.vm.network "forwarded_port", guest: guest, host: host }
