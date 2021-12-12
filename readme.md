@@ -106,3 +106,7 @@ Assuming `vagrant` and `vboxmanage` commands are accessible in your command line
 ### API Documentation
 
 Postman collection for REST APIs is available at: <https://www.postman.com/xeptore/workspace/gsa/collection/6663032-e7ea02bf-4666-4820-a8ff-dfa3ecbf3fbe>
+
+## Requirements
+
+With default setup, a 4 core CPU and ~16GB memory would be enough. If you want to decrease the amount of memory, or number of CPU cores allocated to each virtual machine, you can do it in [`Vagrantfile`]('./../Vagrantfile). Of course there is no guarantee that the application works correctly after those changes!
