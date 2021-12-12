@@ -84,7 +84,7 @@ Vagrant.configure("2") do |config|
       cfg.vm.provider "virtualbox" do |vb|
         vb.gui = false
         vb.name = "gsa-app-#{i}"
-        vb.memory = 4096
+        vb.memory = 2048
         vb.cpus = 2
       end
     end
@@ -112,7 +112,7 @@ Vagrant.configure("2") do |config|
       cfg.vm.provider "virtualbox" do |vb|
         vb.gui = false
         vb.name = "gsa-gateway-#{i}"
-        vb.memory = 8192
+        vb.memory = 4096
         vb.cpus = 4
       end
     end
@@ -127,7 +127,7 @@ Vagrant.configure("2") do |config|
       cfg.vm.provider "virtualbox" do |vb|
         vb.gui = false
         vb.name = "gsa-dmz-#{i}"
-        vb.memory = 2048
+        vb.memory = 1024
         vb.cpus = 2
       end
     end
