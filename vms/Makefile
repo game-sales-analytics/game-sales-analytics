@@ -288,5 +288,25 @@ start-webserver:
 .PHONY: start-webserver
 
 
-start-all: start-usersdb start-coredb start-usersdbadmin start-coredbadmin start-userssrv start-cache start-coresrv run-prepper start-gateway start-webserver
+start-swarmvisualizer:
+	docker service create \
+		--constraint 'node.role == manager' \
+		--endpoint-mode vip \
+		--hostname swarmvisualizer \
+		--mode replicated \
+		--mount type=bind,source=/var/run/docker.sock,destination=/var/run/docker.sock,readonly=false \
+		--name swarmvisualizer \
+		--network gsa \
+		--publish published=8383,target=8080 \
+		--replicas 1 \
+		--replicas-max-per-node 1 \
+		--restart-condition on-failure \
+		--restart-delay 5s \
+		--restart-max-attempts 10 \
+		--restart-window 5s \
+		docker.io/dockersamples/visualizer:latest
+.PHONY: start-swarmvisualizer
+
+
+start-all: start-swarmvisualizer start-usersdb start-coredb start-usersdbadmin start-coredbadmin start-userssrv start-cache start-coresrv run-prepper start-gateway start-webserver
 .PHONY: start-all
