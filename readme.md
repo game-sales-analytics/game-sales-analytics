@@ -99,6 +99,8 @@ Assuming `vagrant` and `vboxmanage` commands are accessible in your command line
 
      - Password: Application user's password you have set in `vms/dbs/.env.core` (`POSTGRESQL_PASSWORD`)
 
+   - <http://localhost:8383>: Docker Swarm Orchestrator visualizer service. You can see live graphical representation of the swarm at this address.
+
    Also, <http://localhost:9292> is exposed by the API web server which can be used for API communications.
 
 ### API Documentation
