@@ -6,28 +6,18 @@ init-network:
 	docker network create --driver overlay gsa
 .PHONY: init-network
 
-VOLUMES = usersdb coredb coredbadmin_data redis_data caddy_data caddy_config
-
-init-volumes:
-	$(foreach v,$(VOLUMES),docker volume create $(v);)
-.PHONY: init-volumes
-
-init-all: init-network init-volumes init-configs
+init-all: init-network init-configs
 .PHONY: init-all
 
 prune-configs:
-	docker config rm caddy-conf
+	docker config rm caddy-conf prometheus-conf caddymon-conf
 .PHONY: prune-configs
-
-prune-volumes:
-	$(foreach v,$(VOLUMES),docker volume rm $(v);)
-.PHONY: prune-volumes
 
 prune-network:
 	docker network rm gsa
 .PHONY: prune-network
 
-prune-all: prune-volumes prune-network prune-configs
+prune-all: prune-network prune-configs
 .PHONY: prune-all
 
 start-usersdb:
