@@ -89,7 +89,7 @@ module VagrantPlugins
           "--command",
           "docker swarm init --advertise-addr=192.168.56.43 --availability=active --force-new-cluster --task-history-limit=10",
           $manager_vm,
-          :err => STDERR,
+          :err => "/dev/null",
           STDOUT => w,
         )
         w.close
@@ -104,7 +104,7 @@ module VagrantPlugins
             "--command",
             cmd,
             m,
-            :err => STDERR,
+            :err => "/dev/null",
             STDOUT => STDOUT,
           )
         end
@@ -118,7 +118,7 @@ module VagrantPlugins
               "--command",
               "docker node update --label-add #{label} #{name}",
               $manager_vm,
-              :err => STDERR,
+              :err => "/dev/null",
             )
           end
         end
