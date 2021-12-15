@@ -48,7 +48,7 @@ Vagrant.configure("2") do |config|
       9090 => 9090,
     }.each { |host, guest| manager.vm.network "forwarded_port", guest: guest, host: host }
 
-    manager.vm.provision name: "install-apps", type: "shell", run: "once", inline: <<-SCRIPT
+    manager.vm.provision "install-apps", type: "shell", run: "once", inline: <<-SCRIPT
       apk update
       apk upgrade
       apk add make
