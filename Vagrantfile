@@ -8,13 +8,13 @@ ip_generator = IPGenerator.new
 Vagrant.require_version ">= 2.2.19"
 
 Vagrant.configure("2") do |config|
-  config.vm.box = "xeptore/ubuntu-docker"
+  config.vm.box = "xeptore/alpine315-docker"
 
-  config.vm.box_version = "20211212.1.45"
+  config.vm.box_version = "20211214.22.42"
 
-  config.vm.box_url = "https://vagrantcloud.com/xeptore/ubuntu-docker"
+  config.vm.box_url = "https://vagrantcloud.com/xeptore/alpine315-docker"
 
-  config.vm.box_download_checksum = "d377061369758eeed23299cbb6b80737d8b8e02b0837a3f00c06e7737d19c02d73747dc3f119c2a561398fc23631077944d3882bfbf2a975523b2462a8ad4c02"
+  config.vm.box_download_checksum = "8c7ba11220cd8029ee86c1e22cd230abc1c980f1ac2f6e5bac6a4efa6d3f47782252cbaa891f5ed94608a7eb25d400b6055c50f02b1ce8a21d50a7daf3d1fbf5"
 
   config.vm.box_download_checksum_type = "sha512"
 
@@ -23,6 +23,8 @@ Vagrant.configure("2") do |config|
   config.vm.box_check_update = false
 
   config.ssh.connect_timeout = 3
+
+  config.ssh.shell = "sh"
 
   config.vm.provider "virtualbox" do |v|
     v.linked_clone = true
@@ -39,7 +41,18 @@ Vagrant.configure("2") do |config|
       8383 => 8383,
       8585 => 8585,
       9292 => 9292,
+      3000 => 3000,
+      8086 => 8086,
+      8888 => 8888,
+      8080 => 8080,
+      9090 => 9090,
     }.each { |host, guest| manager.vm.network "forwarded_port", guest: guest, host: host }
+
+    manager.vm.provision name: "install-apps", type: "shell", run: "once", inline: <<-SCRIPT
+      apk update
+      apk upgrade
+      apk add make
+    SCRIPT
 
     manager.vm.provider "virtualbox" do |vb|
       vb.gui = false
@@ -100,6 +113,19 @@ Vagrant.configure("2") do |config|
       vb.name = "gsa-cache"
       vb.memory = 2048
       vb.cpus = 2
+    end
+  end
+
+  config.vm.define "monitor" do |cfg|
+    cfg.vm.hostname = "monitor"
+
+    cfg.vm.network "private_network", ip: ip_generator.resume
+
+    cfg.vm.provider "virtualbox" do |vb|
+      vb.gui = false
+      vb.name = "gsa-monitor"
+      vb.memory = 8192
+      vb.cpus = 4
     end
   end
 

@@ -9,6 +9,9 @@ $worker_vms = {
   "dbadmins" => {
     labels: ["category=dba"],
   },
+  "monitor" => {
+    labels: ["category=monitor"],
+  },
   "app-1" => {
     labels: ["category=app"],
   },
@@ -84,9 +87,9 @@ module VagrantPlugins
           "vagrant",
           "ssh",
           "--command",
-          "docker swarm init --advertise-addr=enp0s8 --availability=drain --force-new-cluster --task-history-limit=10",
+          "docker swarm init --advertise-addr=192.168.56.43 --availability=active --force-new-cluster --task-history-limit=10",
           $manager_vm,
-          :err => "/dev/null",
+          :err => STDERR,
           STDOUT => w,
         )
         w.close
@@ -101,7 +104,7 @@ module VagrantPlugins
             "--command",
             cmd,
             m,
-            :err => "/dev/null",
+            :err => STDERR,
             STDOUT => STDOUT,
           )
         end
@@ -115,7 +118,7 @@ module VagrantPlugins
               "--command",
               "docker node update --label-add #{label} #{name}",
               $manager_vm,
-              :err => "/dev/null",
+              :err => STDERR,
             )
           end
         end
