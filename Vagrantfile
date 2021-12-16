@@ -34,7 +34,7 @@ Vagrant.configure("2") do |config|
   config.vm.define "manager", primary: true do |manager|
     manager.vm.hostname = "manager"
 
-    manager.vm.network "private_network", ip: ip_generator.resume
+    manager.vm.network "private_network", ip: ip_generator.next
 
     {
       8181 => 8181,
@@ -65,7 +65,7 @@ Vagrant.configure("2") do |config|
   config.vm.define "databases" do |cfg|
     cfg.vm.hostname = "databases"
 
-    cfg.vm.network "private_network", ip: ip_generator.resume
+    cfg.vm.network "private_network", ip: ip_generator.next
 
     cfg.vm.provider "virtualbox" do |vb|
       vb.gui = false
@@ -78,7 +78,7 @@ Vagrant.configure("2") do |config|
   config.vm.define "dbadmins" do |cfg|
     cfg.vm.hostname = "dbadmins"
 
-    cfg.vm.network "private_network", ip: ip_generator.resume
+    cfg.vm.network "private_network", ip: ip_generator.next
 
     cfg.vm.provider "virtualbox" do |vb|
       vb.gui = false
@@ -92,7 +92,7 @@ Vagrant.configure("2") do |config|
     config.vm.define "app-#{i}" do |cfg|
       cfg.vm.hostname = "app-#{i}"
 
-      cfg.vm.network "private_network", ip: ip_generator.resume
+      cfg.vm.network "private_network", ip: ip_generator.next
 
       cfg.vm.provider "virtualbox" do |vb|
         vb.gui = false
@@ -106,7 +106,7 @@ Vagrant.configure("2") do |config|
   config.vm.define "cache" do |cfg|
     cfg.vm.hostname = "cache"
 
-    cfg.vm.network "private_network", ip: ip_generator.resume
+    cfg.vm.network "private_network", ip: ip_generator.next
 
     cfg.vm.provider "virtualbox" do |vb|
       vb.gui = false
@@ -119,7 +119,7 @@ Vagrant.configure("2") do |config|
   config.vm.define "monitor" do |cfg|
     cfg.vm.hostname = "monitor"
 
-    cfg.vm.network "private_network", ip: ip_generator.resume
+    cfg.vm.network "private_network", ip: ip_generator.next
 
     cfg.vm.provider "virtualbox" do |vb|
       vb.gui = false
@@ -133,7 +133,7 @@ Vagrant.configure("2") do |config|
     config.vm.define "gateway-#{i}" do |cfg|
       cfg.vm.hostname = "gateway-#{i}"
 
-      cfg.vm.network "private_network", ip: ip_generator.resume
+      cfg.vm.network "private_network", ip: ip_generator.next
 
       cfg.vm.provider "virtualbox" do |vb|
         vb.gui = false
@@ -148,7 +148,7 @@ Vagrant.configure("2") do |config|
     config.vm.define "dmz-#{i}" do |cfg|
       cfg.vm.hostname = "dmz-#{i}"
 
-      cfg.vm.network "private_network", ip: ip_generator.resume
+      cfg.vm.network "private_network", ip: ip_generator.next
 
       cfg.vm.provider "virtualbox" do |vb|
         vb.gui = false
