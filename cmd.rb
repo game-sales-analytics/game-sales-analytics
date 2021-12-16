@@ -1,47 +1,5 @@
 require "vagrant"
-
-$manager_vm = "manager"
-
-$worker_vms = {
-  "databases" => {
-    labels: ["category=dbs"],
-  },
-  "dbadmins" => {
-    labels: ["category=dba"],
-  },
-  "monitor" => {
-    labels: ["category=monitor"],
-  },
-  "app-1" => {
-    labels: ["category=app"],
-  },
-  "app-2" => {
-    labels: ["category=app"],
-  },
-  "app-3" => {
-    labels: ["category=app"],
-  },
-  "cache" => {
-    labels: ["category=cache"],
-  },
-  "gateway-1" => {
-    labels: ["category=gateway"],
-  },
-  "gateway-2" => {
-    labels: ["category=gateway"],
-  },
-  "dmz-1" => {
-    labels: ["category=dmz"],
-  },
-  "dmz-2" => {
-    labels: ["category=dmz"],
-  },
-  "dmz-3" => {
-    labels: ["category=dmz"],
-  },
-}
-
-$all_vms = [$manager_vm].concat($worker_vms.keys)
+require_relative "vms"
 
 module VagrantPlugins
   module CommandUploadeManagerFiles
@@ -56,7 +14,7 @@ module VagrantPlugins
           "upload",
           "./vms/",
           "/home/vagrant/vms",
-          $manager_vm,
+          $manager_vm_name,
           :err => "/dev/null",
           STDOUT => STDOUT,
         )
@@ -88,7 +46,7 @@ module VagrantPlugins
           "ssh",
           "--command",
           "docker swarm init --advertise-addr=192.168.56.43 --availability=active --force-new-cluster --task-history-limit=10",
-          $manager_vm,
+          $manager_vm_name,
           :err => "/dev/null",
           STDOUT => w,
         )
@@ -117,7 +75,7 @@ module VagrantPlugins
               "ssh",
               "--command",
               "docker node update --label-add #{label} #{name}",
-              $manager_vm,
+              $manager_vm_name,
               :err => "/dev/null",
             )
           end
@@ -133,7 +91,7 @@ module VagrantPlugins
           "ssh",
           "--command",
           "cd vms && make init-all",
-          $manager_vm,
+          $manager_vm_name,
         )
       end
     end
@@ -162,7 +120,7 @@ module VagrantPlugins
           "ssh",
           "--command",
           "cd vms && make start-all",
-          $manager_vm,
+          $manager_vm_name,
           STDERR => STDERR,
           STDOUT => STDOUT,
         )
