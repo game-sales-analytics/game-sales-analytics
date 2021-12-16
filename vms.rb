@@ -2,6 +2,15 @@ require_relative "ip_generator"
 
 ip_generator = IPGenerator.new
 
+$dnssrv_vm_name = "dnssrv"
+$dnssrv_vm = {
+  labels: ["category=dns"],
+  memory: 1024,
+  cpus: 1,
+  ip: ip_generator.next,
+  vb_name: "gsa-#{$dnssrv_vm_name}",
+}
+
 $manager_vm_name = "manager"
 $manager_vm = {
   labels: [],
@@ -63,4 +72,7 @@ $worker_vms = {
   .transform_values { |v| v.merge({ ip: ip_generator.next }) }
   .map { |k, v| [k, v.merge({ vb_name: "gsa-#{k}" })] }.to_h
 
-$all_vms = { "#{$manager_vm_name}" => $manager_vm }.merge($worker_vms)
+$all_vms = {
+  "#{$dnssrv_vm_name}" => $dnssrv_vm,
+  "#{$manager_vm_name}" => $manager_vm,
+}.merge($worker_vms)

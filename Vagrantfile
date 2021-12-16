@@ -60,6 +60,25 @@ Vagrant.configure("2") do |config|
     end
   end
 
+  config.vm.define $dnssrv_vm_name do |manager|
+    manager.vm.hostname = $dnssrv_vm_name
+
+    manager.vm.network "private_network", ip: $dnssrv_vm[:ip]
+
+    manager.vm.provision "install-apps", type: "shell", run: "once", inline: <<-SCRIPT
+      apk update
+      apk upgrade
+      apk add make tinydns
+    SCRIPT
+
+    manager.vm.provider "virtualbox" do |vb|
+      vb.gui = false
+      vb.name = $dnssrv_vm[:vb_name]
+      vb.memory = $dnssrv_vm[:memory]
+      vb.cpus = $dnssrv_vm[:cpus]
+    end
+  end
+
   $worker_vms.each { |name, vm|
     config.vm.define name do |cfg|
       cfg.vm.hostname = name
