@@ -5,7 +5,7 @@ ip_generator = IPGenerator.new
 $dnssrv_vm_name = "dns"
 $dnssrv_vm = {
   labels: ["category=dns"],
-  memory: 1024,
+  memory: 256,
   cpus: 1,
   ip: ip_generator.next,
   vb_name: "gsa-#{$dnssrv_vm_name}",
