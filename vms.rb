@@ -2,7 +2,7 @@ require_relative "ip_generator"
 
 ip_generator = IPGenerator.new
 
-$dnssrv_vm_name = "dnssrv"
+$dnssrv_vm_name = "dns"
 $dnssrv_vm = {
   labels: ["category=dns"],
   memory: 1024,
