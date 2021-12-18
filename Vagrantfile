@@ -7,7 +7,7 @@ def provision_dns(machine)
   dns_servers = [
     "94.140.14.14",
     "8.20.247.20",
-    $dnssrv_vm[:ip],
+    $dns_vm[:ip],
   ]
 
   nameservers = dns_servers.map { |s| "nameserver #{s}" }
@@ -80,10 +80,10 @@ apk add make
     end
   end
 
-  config.vm.define $dnssrv_vm_name do |dns|
-    dns.vm.hostname = $dnssrv_vm_name
+  config.vm.define $dns_vm_name do |dns|
+    dns.vm.hostname = $dns_vm_name
 
-    dns.vm.network "private_network", ip: $dnssrv_vm[:ip]
+    dns.vm.network "private_network", ip: $dns_vm[:ip]
 
     dns.vm.provision "install-apps", type: "shell", run: "once", privileged: true, inline: <<-SCRIPT
 set -eux
@@ -94,19 +94,19 @@ apk add tinydns
 
     dns.vm.provision "configure-tinydns", type: "shell", run: "once", privileged: true, inline: <<-SCRIPT
 set -evx
-echo 'IP=#{$dnssrv_vm[:ip]}' > /etc/conf.d/tinydns
+echo 'IP=#{$dns_vm[:ip]}' > /etc/conf.d/tinydns
 cat > /etc/tinydns/data <<-DATA
-.internal:#{$dnssrv_vm[:ip]}:a:259200
-#{$all_vms.map { |k, v| "=#{k}.internal:#{v[:ip]}:10800" }.join("\n")}
+.internal:#{$dns_vm[:ip]}:a:259200
+#{$swarm_vms.map { |k, v| "=#{k}.internal:#{v[:ip]}:10800" }.join("\n")}
 DATA
 rc-service tinydns start
     SCRIPT
 
     dns.vm.provider "virtualbox" do |vb|
       vb.gui = false
-      vb.name = $dnssrv_vm[:vb_name]
-      vb.memory = $dnssrv_vm[:memory]
-      vb.cpus = $dnssrv_vm[:cpus]
+      vb.name = $dns_vm[:vb_name]
+      vb.memory = $dns_vm[:memory]
+      vb.cpus = $dns_vm[:cpus]
     end
   end
 
