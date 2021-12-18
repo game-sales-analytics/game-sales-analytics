@@ -45,7 +45,7 @@ module VagrantPlugins
           "vagrant",
           "ssh",
           "--command",
-          "docker swarm init --advertise-addr=192.168.56.43 --availability=active --force-new-cluster --task-history-limit=10",
+          "docker swarm init --advertise-addr=#{$manager_vm[:ip]} --availability=active --force-new-cluster --task-history-limit=10",
           $manager_vm_name,
           :err => "/dev/null",
           STDOUT => w,
