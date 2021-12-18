@@ -46,10 +46,10 @@ Vagrant.configure("2") do |config|
     v.check_guest_additions = false
   end
 
-  config.vm.define $manager_vm_name, primary: true do |dns|
-    dns.vm.hostname = $manager_vm_name
+  config.vm.define $manager_vm_name, primary: true do |manager|
+    manager.vm.hostname = $manager_vm_name
 
-    dns.vm.network "private_network", ip: $manager_vm[:ip]
+    manager.vm.network "private_network", ip: $manager_vm[:ip]
 
     {
       8181 => 8181,
@@ -61,18 +61,18 @@ Vagrant.configure("2") do |config|
       8888 => 8888,
       8080 => 8080,
       9090 => 9090,
-    }.each { |host, guest| dns.vm.network "forwarded_port", guest: guest, host: host }
+    }.each { |host, guest| manager.vm.network "forwarded_port", guest: guest, host: host }
 
-    dns.vm.provision "install-apps", type: "shell", run: "once", privileged: true, inline: <<-SCRIPT
+    manager.vm.provision "install-apps", type: "shell", run: "once", privileged: true, inline: <<-SCRIPT
 set -eux
 apk update
 apk upgrade
 apk add make
     SCRIPT
 
-    provision_dns dns
+    provision_dns manager
 
-    dns.vm.provider "virtualbox" do |vb|
+    manager.vm.provider "virtualbox" do |vb|
       vb.gui = false
       vb.name = $manager_vm[:vb_name]
       vb.memory = $manager_vm[:memory]
@@ -111,14 +111,14 @@ rc-service tinydns start
   end
 
   $worker_vms.each { |name, vm|
-    config.vm.define name do |cfg|
-      cfg.vm.hostname = name
+    config.vm.define name do |machine|
+      machine.vm.hostname = name
 
-      cfg.vm.network "private_network", ip: vm[:ip]
+      machine.vm.network "private_network", ip: vm[:ip]
 
-      provision_dns cfg
+      provision_dns machine
 
-      cfg.vm.provider "virtualbox" do |vb|
+      machine.vm.provider "virtualbox" do |vb|
         vb.gui = false
         vb.name = vm[:vb_name]
         vb.memory = vm[:memory]
