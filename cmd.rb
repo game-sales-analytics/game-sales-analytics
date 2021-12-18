@@ -55,7 +55,7 @@ module VagrantPlugins
         r.close
 
         $worker_vms.each_key do |m|
-          puts "Joining machine '#{m}...'"
+          puts "Joining machine '#{m}'..."
           Process.wait spawn(
             "vagrant",
             "ssh",
