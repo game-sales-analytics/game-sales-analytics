@@ -39,11 +39,6 @@ Vagrant.configure("2") do |config|
     v.check_guest_additions = false
   end
 
-  config.vm.provision "share-slash", type: "shell", run: "always", privileged: true, inline: <<-SCRIPT
-set -ev
-mount --make-shared /
-SCRIPT
-
   config.vm.define $manager_vm_name, primary: true do |manager|
     manager.vm.hostname = "#{$manager_vm_name}.internal"
 
