@@ -7,7 +7,7 @@ def provision_dns(machine)
   dns_servers = [
     "94.140.14.14",
     "8.20.247.20",
-    $dns_vm[:ip],
+    $worker_vms[:dns][:ip],
   ]
 
   nameservers = dns_servers.map { |s| "nameserver #{s}" }
@@ -24,9 +24,9 @@ Vagrant.require_version ">= 2.2.19"
 
 Vagrant.configure("2") do |config|
   config.vm.box = "xeptore/alpine315-docker"
-  config.vm.box_version = "20211219.7.27"
+  config.vm.box_version = "20211219.10.31"
   config.vm.box_url = "https://vagrantcloud.com/xeptore/alpine315-docker"
-  config.vm.box_download_checksum = "12b8e2863132c3d2b59b136836d7d88def2306c5f2fe54b56573cf41db569cb6e849ac908489dae8ea363516497783c2c48d73468d942a0287a04ebcc7ccc2e9"
+  config.vm.box_download_checksum = "d495f3de4b104b5d8728a20737c4902973cc4b1e811fcd097e203ea1b6500c2404bcca632fd668a5f3f71f06914fce3bb910c728e4819b7d5b8f3abb4cde297a"
   config.vm.box_download_checksum_type = "sha512"
   config.vm.box_check_update = false
 
@@ -39,8 +39,8 @@ Vagrant.configure("2") do |config|
     v.check_guest_additions = false
   end
 
-  config.vm.define $manager_vm_name, primary: true do |manager|
-    manager.vm.hostname = "#{$manager_vm_name}.internal"
+  config.vm.define $manager_vm[:name], primary: true do |manager|
+    manager.vm.hostname = "#{$manager_vm[:name]}.internal"
 
     manager.vm.network "private_network", ip: $manager_vm[:ip]
 
@@ -65,7 +65,7 @@ SCRIPT
 
     manager.vm.provision "set-env", type: "shell", run: "once", privileged: false, inline: <<-SCRIPT
 set -ev
-echo 'DNS_SERVER_IP=#{$dns_vm[:ip]}' > ~/.profile
+echo 'DNS_SERVER_IP=#{$worker_vms[:dns][:ip]}' > ~/.profile
 SCRIPT
 
     provision_dns manager
@@ -78,21 +78,13 @@ SCRIPT
     end
   end
 
-  config.vm.define $dns_vm_name do |dns|
-    dns.vm.box = "generic/alpine315"
-    dns.vm.box_version = "3.6.0"
-    dns.vm.box_url = "https://vagrantcloud.com/generic/alpine315"
-    dns.vm.box_download_checksum = "47d925219c9cde0b85930ef0558684da0bd0ebf6477fa95213117c83496c018294cdf1501c6309fd109738dd76bc66b843363d2222e8575a5d984bb92cf05805"
-    dns.vm.box_download_checksum_type = "sha512"
+  config.vm.define $worker_vms[:dns][:name] do |dns|
+    dns.vm.hostname = "#{$worker_vms[:dns][:name]}.internal"
 
-    dns.vm.hostname = "#{$dns_vm_name}.internal"
-
-    dns.vm.network "private_network", ip: $dns_vm[:ip]
+    dns.vm.network "private_network", ip: $worker_vms[:dns][:ip]
 
     dns.vm.provision "install-apps", type: "shell", run: "once", privileged: true, inline: <<-SCRIPT
 set -ev
-printf 'https://mirror.math.princeton.edu/pub/alpinelinux/v3.15/main\n' >/etc/apk/repositories
-printf 'https://mirror.math.princeton.edu/pub/alpinelinux/v3.15/community\n' >>/etc/apk/repositories
 apk update
 apk upgrade
 apk add tinydns
@@ -100,9 +92,9 @@ SCRIPT
 
     dns.vm.provision "configure-tinydns", type: "shell", run: "once", privileged: true, inline: <<-SCRIPT
 set -ev
-echo 'IP=#{$dns_vm[:ip]}' > /etc/conf.d/tinydns
+echo 'IP=#{$worker_vms[:dns][:ip]}' > /etc/conf.d/tinydns
 cat > /etc/tinydns/data <<-DATA
-.internal:#{$dns_vm[:ip]}:a:259200
+.internal:#{$worker_vms[:dns][:ip]}:a:259200
 #{$swarm_vms.map { |k, v| "=#{k}.internal:#{v[:ip]}:10800" }.join("\n")}
 DATA
 rc-service tinydns start
@@ -110,28 +102,28 @@ SCRIPT
 
     dns.vm.provider "virtualbox" do |vb|
       vb.gui = false
-      vb.name = $dns_vm[:vb_name]
-      vb.memory = $dns_vm[:memory]
-      vb.cpus = $dns_vm[:cpus]
+      vb.name = $worker_vms[:dns][:vb_name]
+      vb.memory = $worker_vms[:dns][:memory]
+      vb.cpus = $worker_vms[:dns][:cpus]
     end
   end
 
-  config.vm.define $monitor_vm_name, primary: true do |monitor|
-    monitor.vm.hostname = "#{$monitor_vm_name}.internal"
+  config.vm.define $worker_vms[:monitor][:name], primary: true do |monitor|
+    monitor.vm.hostname = "#{$worker_vms[:monitor][:name]}.internal"
 
-    monitor.vm.network "private_network", ip: $monitor_vm[:ip]
+    monitor.vm.network "private_network", ip: $worker_vms[:monitor][:ip]
 
     {
       9393 => { port: 9393, id: "app-prometheus" },
-    }.each { |host, guest| monitor.vm.network "forwarded_port", id: guest[:id], guest: guest[:port], guest_ip: "127.0.0.1", host: host, host_ip: "127.0.0.1" }
+    }.each { |host, guest| monitor.vm.network "forwarded_port", id: guest[:id], guest: guest[:port], guest_ip: $worker_vms[:monitor][:ip], host: host, host_ip: "127.0.0.1" }
 
     provision_dns monitor
 
     monitor.vm.provider "virtualbox" do |vb|
       vb.gui = false
-      vb.name = $monitor_vm[:vb_name]
-      vb.memory = $monitor_vm[:memory]
-      vb.cpus = $monitor_vm[:cpus]
+      vb.name = $worker_vms[:monitor][:vb_name]
+      vb.memory = $worker_vms[:monitor][:memory]
+      vb.cpus = $worker_vms[:monitor][:cpus]
     end
   end
 

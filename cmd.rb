@@ -14,7 +14,7 @@ module VagrantPlugins
           "upload",
           "./vms/",
           "/home/vagrant/vms",
-          $manager_vm_name,
+          $manager_vm[:name],
           :err => "/dev/null",
           STDOUT => STDOUT,
         )
@@ -46,7 +46,7 @@ module VagrantPlugins
           "ssh",
           "--command",
           "docker swarm init --advertise-addr=#{$manager_vm[:ip]} --availability=active --force-new-cluster --task-history-limit=10",
-          $manager_vm_name,
+          $manager_vm[:name],
           :err => "/dev/null",
           STDOUT => w,
         )
@@ -54,20 +54,20 @@ module VagrantPlugins
         cmd = r.read.lines.map(&:strip).delete_if { |line| line.empty? }.at(2).strip
         r.close
 
-        $worker_vms.merge($monitor_vm).each_key do |m|
+        $worker_vms.each_key do |m|
           puts "Joining machine '#{m}'..."
           Process.wait spawn(
             "vagrant",
             "ssh",
             "--command",
             cmd,
-            m,
+            "#{m}",
             :err => "/dev/null",
             STDOUT => STDOUT,
           )
         end
 
-        $worker_vms.merge($monitor_vm).each_pair do |name, vm|
+        $worker_vms.each_pair do |name, vm|
           vm[:labels].each do |label|
             puts "Labeling machine '#{name}' as '#{label}'..."
             Process.wait spawn(
@@ -75,7 +75,7 @@ module VagrantPlugins
               "ssh",
               "--command",
               "docker node update --label-add #{label} #{name}",
-              $manager_vm_name,
+              $manager_vm[:name],
               :err => "/dev/null",
             )
           end
@@ -91,7 +91,7 @@ module VagrantPlugins
           "ssh",
           "--command",
           "cd vms && make init-all",
-          $manager_vm_name,
+          $manager_vm[:name],
         )
       end
     end
@@ -120,7 +120,7 @@ module VagrantPlugins
           "ssh",
           "--command",
           "cd vms && make start-all",
-          $manager_vm_name,
+          $manager_vm[:name],
           STDERR => STDERR,
           STDOUT => STDOUT,
         )
@@ -148,7 +148,7 @@ module VagrantPlugins
       def execute
         $swarm_vms.each_key do |m|
           puts "Leaving machine '#{m}'..."
-          Process.wait spawn("vagrant", "ssh", "--command", "docker swarm leave --force", m, :err => "/dev/null")
+          Process.wait spawn("vagrant", "ssh", "--command", "docker swarm leave --force", "#{m}", :err => "/dev/null")
         end
       end
     end
