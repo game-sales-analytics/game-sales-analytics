@@ -146,7 +146,7 @@ module VagrantPlugins
       end
 
       def execute
-        $swarm_vms.each do |m|
+        $swarm_vms.each_key do |m|
           puts "Leaving machine '#{m}'..."
           Process.wait spawn("vagrant", "ssh", "--command", "docker swarm leave --force", m, :err => "/dev/null")
         end
