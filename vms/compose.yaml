@@ -1,0 +1,130 @@
+version: "3.9"
+networks:
+  net:
+services:
+  nodemon:
+    image: quay.io/prometheus/node-exporter:latest
+    command:
+      - --path.rootfs=/host
+    hostname: nodemon
+    healthcheck:
+      test: wget --quiet --tries=1 --spider http://nodemon:9100
+      interval: 5s
+      timeout: 2s
+      retries: 5
+      start_period: 20s
+    networks:
+      - net
+    ports:
+      - target: 9100
+        published: 9100
+        protocol: tcp
+        mode: host
+    volumes:
+      - type: bind
+        source: /
+        target: /host
+        read_only: true
+        bind:
+          propagation: rslave
+    deploy:
+      endpoint_mode: vip
+      mode: global
+      restart_policy:
+        condition: on-failure
+        delay: 3s
+        max_attempts: 10
+        window: 10s
+  prometheus:
+    image: quay.io/prometheus/prometheus:latest
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+    hostname: prometheus
+    healthcheck:
+      test: wget --quiet --tries=1 --spider http://prometheus:9090
+      interval: 5s
+      timeout: 2s
+      retries: 5
+      start_period: 10s
+    configs:
+      - source: prometheus
+        target: /etc/prometheus/prometheus.yml
+        uid: "65534"
+        gid: "65534"
+        mode: 0400
+    networks:
+      - net
+    dns: ${DNS_SERVER_IP:?}
+    volumes:
+      - type: volume
+        source: prometheus_data
+        target: /prometheus
+        read_only: false
+    deploy:
+      endpoint_mode: vip
+      placement:
+        constraints:
+          - node.role == worker
+          - node.labels.category == monitor
+        max_replicas_per_node: 1
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 3s
+        max_attempts: 10
+        window: 5s
+  caddy:
+    image: docker.io/library/caddy:2
+    networks:
+      - net
+    hostname: caddy
+    healthcheck:
+      test: wget --quiet --tries=1 --spider http://caddy:8787
+      interval: 5s
+      timeout: 2s
+      retries: 5
+      start_period: 3s
+    configs:
+      - source: caddy
+        target: /etc/caddy/Caddyfile
+        uid: "0"
+        gid: "0"
+        mode: 0400
+    volumes:
+      - type: volume
+        source: caddymon_data
+        target: /data
+        read_only: false
+      - type: volume
+        source: caddymon_config
+        target: /config
+        read_only: false
+    ports:
+      - target: 9393
+        published: 9393
+        protocol: tcp
+        mode: host
+    deploy:
+      endpoint_mode: vip
+      placement:
+        constraints:
+          - node.role == worker
+          - node.labels.category == monitor
+        max_replicas_per_node: 1
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 3s
+        max_attempts: 10
+        window: 5s
+configs:
+  caddy:
+    file: ./mon/Caddyfile
+  prometheus:
+    file: ./mon/prometheus.yml
+volumes:
+  prometheus_data:
+  caddymon_data:
+  caddymon_config:
