@@ -18,23 +18,26 @@ $manager_vm = {
   vb_name: "gsa-#{$manager_vm_name}",
 }
 
+$monitor_vm_name = "monitor"
+$monitor_vm = {
+  labels: ["category=monitor"],
+  memory: 8192,
+  cpus: 4,
+  ip: "192.168.56.34",
+  vb_name: "gsa-#{$monitor_vm_name}",
+}
+
 $worker_vms = {
   "databases" => {
     labels: ["category=dbs"],
     memory: 8192,
     cpus: 4,
-    ip: "192.168.56.34",
+    ip: "192.168.56.35",
   },
   "dbadmins" => {
     labels: ["category=dba"],
     memory: 4096,
     cpus: 2,
-    ip: "192.168.56.35",
-  },
-  "monitor" => {
-    labels: ["category=monitor"],
-    memory: 8192,
-    cpus: 4,
     ip: "192.168.56.36",
   },
   "cache" => {
@@ -96,6 +99,7 @@ $worker_vms = {
 
 $swarm_vms = {
   "#{$manager_vm_name}" => $manager_vm,
+  "#{$monitor_vm_name}" => $monitor_vm,
 }.merge($worker_vms)
 
 $all_vms = {

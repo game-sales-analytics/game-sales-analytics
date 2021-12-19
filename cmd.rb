@@ -54,7 +54,7 @@ module VagrantPlugins
         cmd = r.read.lines.map(&:strip).delete_if { |line| line.empty? }.at(2).strip
         r.close
 
-        $worker_vms.each_key do |m|
+        $worker_vms.merge($monitor_vm).each_key do |m|
           puts "Joining machine '#{m}'..."
           Process.wait spawn(
             "vagrant",
@@ -67,7 +67,7 @@ module VagrantPlugins
           )
         end
 
-        $worker_vms.each_pair do |name, vm|
+        $worker_vms.merge($monitor_vm).each_pair do |name, vm|
           vm[:labels].each do |label|
             puts "Labeling machine '#{name}' as '#{label}'..."
             Process.wait spawn(
