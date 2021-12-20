@@ -1,0 +1,349 @@
+version: "3.9"
+networks:
+  gsa:
+configs:
+  caddy:
+    file: ./Caddyfile
+volumes:
+  usersdb:
+  coredb:
+  coredbadmin:
+  redis_data:
+  caddy_data:
+  caddy_config:
+services:
+  usersdb:
+    image: docker.io/bitnami/mongodb:5.0
+    hostname: usersdb
+    environment:
+      MONGODB_PORT_NUMBER: 20321
+    env_file:
+      - dbs/.env.users
+    healthcheck:
+      test: mongo --username $$MONGODB_USERNAME --password $$MONGODB_PASSWORD --host usersdb --port $$MONGODB_PORT_NUMBER $$MONGODB_DATABASE --authenticationDatabase=$$MONGODB_DATABASE --quiet --eval 'db.runCommand("ping").ok'
+      interval: 3s
+      timeout: 2s
+      retries: 3
+      start_period: 10s
+    volumes:
+      - type: volume
+        source: usersdb
+        target: /bitnami/mongodb
+        read_only: false
+    networks:
+      - gsa
+    deploy:
+      endpoint_mode: vip
+      mode: replicated
+      replicas: 1
+      placement:
+        max_replicas_per_node: 1
+        constraints:
+          - node.role == worker
+          - node.labels.category == dbs
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 38
+        window: 5s
+  coredb:
+    image: docker.io/bitnami/postgresql:14
+    hostname: coredb
+    env_file:
+      - dbs/.env.core
+    healthcheck:
+      test: pg_isready -t 5 -d $$POSTGRESQL_DATABASE -h coredb -p 5432 -U $$POSTGRESQL_USERNAME
+      interval: 5s
+      timeout: 2s
+      retries: 2
+      start_period: 15s
+    volumes:
+      - type: volume
+        source: coredb
+        target: /bitnami/postgresql
+        read_only: false
+    networks:
+      - gsa
+    deploy:
+      endpoint_mode: vip
+      mode: replicated
+      replicas: 1
+      placement:
+        max_replicas_per_node: 1
+        constraints:
+          - node.role == worker
+          - node.labels.category == dbs
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 38
+        window: 15s
+  usersdbadmin:
+    image: docker.io/xeptore/mongo-express-wget:latest
+    hostname: usersdbadmin
+    environment:
+      ME_CONFIG_MONGODB_ENABLE_ADMIN: "true"
+      ME_CONFIG_OPTIONS_EDITORTHEME: base16-dark
+      ME_CONFIG_MONGODB_PORT: 20321
+      ME_CONFIG_MONGODB_SERVER: usersdb
+      VCAP_APP_HOST: usersdbadmin
+    env_file:
+      - dba/.env.users
+    healthcheck:
+      test: wget --quiet --tries=1 --spider --auth-no-challenge --http-user=$$ME_CONFIG_BASICAUTH_USERNAME --http-password=$$ME_CONFIG_BASICAUTH_PASSWORD http://usersdbadmin:8081/db/admin
+      interval: 5s
+      timeout: 2s
+      retries: 2
+      start_period: 10s
+    networks:
+      - gsa
+    deploy:
+      endpoint_mode: vip
+      mode: replicated
+      replicas: 1
+      placement:
+        max_replicas_per_node: 1
+        constraints:
+          - node.role == worker
+          - node.labels.category == dba
+      restart_policy:
+        condition: any
+        delay: 10s
+        max_attempts: 38
+        window: 5s
+  coredbadmin:
+    image: docker.io/dpage/pgadmin4:6
+    hostname: coredbadmin
+    environment:
+      PGADMIN_DISABLE_POSTFIX: "true"
+      PGADMIN_LISTEN_ADDRESS: coredbadmin
+      PGADMIN_LISTEN_PORT: 8585
+    env_file:
+      - dba/.env.core
+    healthcheck:
+      test: wget --quiet --tries=1 --spider http://coredbadmin:$$PGADMIN_LISTEN_PORT/login
+      interval: 5s
+      timeout: 2s
+      retries: 8
+      start_period: 15s
+    volumes:
+      - type: volume
+        source: coredbadmin
+        target: /var/lib/pgadmin
+        read_only: false
+    networks:
+      - gsa
+    deploy:
+      endpoint_mode: vip
+      mode: replicated
+      replicas: 1
+      placement:
+        max_replicas_per_node: 1
+        constraints:
+          - node.role == worker
+          - node.labels.category == dba
+      restart_policy:
+        condition: any
+        delay: 10s
+        max_attempts: 38
+        window: 5s
+  userssrv:
+    image: docker.io/xeptore/gsa-userssrv:3
+    hostname: userssrv
+    environment:
+      SERVER_HOST: userssrv
+      SERVER_PORT: 50050
+      DATABASE_HOST: usersdb
+      DATABASE_PORT: 20321
+      DATABASE_USE_AUTH: "true"
+    env_file:
+      - apps/.env.userssrv
+    healthcheck:
+      test:
+        - CMD
+        - /ping
+        - userssrv:50050
+      interval: 5s
+      timeout: 2s
+      retries: 8
+      start_period: 10s
+    networks:
+      - gsa
+    deploy:
+      endpoint_mode: vip
+      mode: replicated
+      replicas: 3
+      placement:
+        max_replicas_per_node: 1
+        constraints:
+          - node.role == worker
+          - node.labels.category == app
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 38
+        window: 5s
+  coresrv:
+    image: docker.io/xeptore/gsa-coresrv:1
+    hostname: coresrv
+    environment:
+      ASPNETCORE_URLS: http://+:50052
+      REDIS_HOST: cache
+      REDIS_PORT: 7658
+      POSTGRESQL_HOST: coredb
+      POSTGRESQL_PORT: 5432
+      USERS_SERVICE_ADDRESS: http://userssrv:50050
+    env_file:
+      - apps/.env.coresrv
+    healthcheck:
+      test: ./Ping http://coresrv:50052
+      interval: 5s
+      timeout: 2s
+      retries: 8
+      start_period: 8s
+    networks:
+      - gsa
+    deploy:
+      endpoint_mode: vip
+      mode: replicated
+      replicas: 3
+      placement:
+        max_replicas_per_node: 1
+        constraints:
+          - node.role == worker
+          - node.labels.category == app
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 38
+        window: 5s
+  cache:
+    image: docker.io/bitnami/redis:6.2
+    hostname: cache
+    environment:
+      REDIS_PORT_NUMBER: 7658
+    env_file:
+      - apps/.env.cache
+    healthcheck:
+      test: redis-cli -h cache -p $$REDIS_PORT_NUMBER ping
+      interval: 5s
+      timeout: 2s
+      retries: 2
+      start_period: 3s
+    volumes:
+      - type: volume
+        source: redis_data
+        target: /bitnami/redis/data
+        read_only: false
+    networks:
+      - gsa
+    deploy:
+      endpoint_mode: vip
+      mode: replicated
+      replicas: 1
+      placement:
+        max_replicas_per_node: 1
+        constraints:
+          - node.role == worker
+          - node.labels.category == cache
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 38
+        window: 5s
+  gateway:
+    image: docker.io/xeptore/gsa-gateway:1
+    hostname: gateway
+    environment:
+      GATEWAY_USERSSRV_HOST: userssrv
+      GATEWAY_USERSSRV_PORT: 50050
+      GATEWAY_CORESRV_HOST: coresrv
+      GATEWAY_CORESRV_PORT: 50052
+      GATEWAY_LISTEN_HOST: gateway
+      GATEWAY_LISTEN_PORT: 9292
+    env_file:
+      - apps/.env.gateway
+    healthcheck:
+      test: wget --quiet --tries=1 --spider http://gateway:9292/ping
+      interval: 5s
+      timeout: 2s
+      retries: 2
+      start_period: 6s
+    volumes:
+      - type: volume
+        source: redis_data
+        target: /bitnami/redis/data
+        read_only: false
+    networks:
+      - gsa
+    deploy:
+      endpoint_mode: vip
+      mode: replicated
+      replicas: 2
+      placement:
+        max_replicas_per_node: 1
+        constraints:
+          - node.role == worker
+          - node.labels.category == gateway
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 38
+        window: 5s
+  webserver:
+    image: docker.io/library/caddy:2
+    hostname: webserver
+    environment:
+      REDIS_PORT_NUMBER: 7658
+    env_file:
+      - apps/.env.webserver
+    healthcheck:
+      test: wget --quiet --tries=1 --spider http://webserver:8686
+      interval: 5s
+      timeout: 2s
+      retries: 2
+      start_period: 4s
+    configs:
+      - source: caddy
+        target: /etc/caddy/Caddyfile
+        uid: "0"
+        gid: "0"
+        mode: 0400
+    ports:
+      - target: 8181
+        published: 8181
+        protocol: tcp
+        mode: ingress
+      - target: 8585
+        published: 8585
+        protocol: tcp
+        mode: ingress
+      - target: 9292
+        published: 9292
+        protocol: tcp
+        mode: ingress
+    volumes:
+      - type: volume
+        source: caddy_data
+        target: /data
+        read_only: false
+      - type: volume
+        source: caddy_config
+        target: /config
+        read_only: false
+    networks:
+      - gsa
+    deploy:
+      endpoint_mode: vip
+      mode: replicated
+      replicas: 3
+      placement:
+        max_replicas_per_node: 1
+        constraints:
+          - node.role == worker
+          - node.labels.category == dmz
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 38
+        window: 5s
