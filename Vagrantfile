@@ -46,18 +46,9 @@ Vagrant.configure("2") do |config|
 
     {
       8181 => { port: 8181, id: "app-usersdbadmin" },
-      8383 => { port: 8383, id: "app-swarmvisualizer" },
       8585 => { port: 8585, id: "app-coredbadmin" },
       9292 => { port: 9292, id: "app-gateway" },
-      9090 => { port: 9090, id: "app-prometheus" },
     }.each { |host, guest| manager.vm.network "forwarded_port", id: guest[:id], guest: guest[:port], guest_ip: $manager_vm[:ip], host: host, host_ip: "127.0.0.1" }
-
-    manager.vm.provision "install-apps", type: "shell", run: "once", privileged: true, inline: <<-SCRIPT
-set -ev
-apk update
-apk upgrade
-apk add make
-SCRIPT
 
     manager.vm.provision "set-env", type: "shell", run: "once", privileged: false, inline: <<-SCRIPT
 set -ev
@@ -124,10 +115,11 @@ SCRIPT
 
   config.vm.define $worker_vms[:monitor][:name] do |monitor|
     {
-      9393 => { port: 9393, id: "app-prometheus" },
       3000 => { port: 3000, id: "app-grafana" },
       8086 => { port: 8086, id: "app-influxdb" },
+      8383 => { port: 8383, id: "app-swarmvisualizer" },
       8888 => { port: 8888, id: "app-chronograf" },
+      9393 => { port: 9393, id: "app-prometheus" },
     }.each { |host, guest| monitor.vm.network "forwarded_port", id: guest[:id], guest: guest[:port], guest_ip: $worker_vms[:monitor][:ip], host: host, host_ip: "127.0.0.1" }
   end
 end
