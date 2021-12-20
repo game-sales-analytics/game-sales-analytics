@@ -113,7 +113,7 @@ With default setup, a 4 core CPU and ~16GB memory would be enough. If you want t
 
 ## TODOs
 
-- [ ] Fix automatic monitoring stack `$DNS_SERVER_IP` variable setup
+- [x] Fix automatic monitoring stack `$DNS_SERVER_IP` variable setup
 - [ ] Fix service startup ordering
 - [ ] Enable secure access to admin dashboards
 - [ ] Add _prepper_ job executor command

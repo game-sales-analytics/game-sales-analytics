@@ -52,7 +52,7 @@ Vagrant.configure("2") do |config|
 
     manager.vm.provision "set-env", type: "shell", run: "once", privileged: false, inline: <<-SCRIPT
 set -ev
-echo 'DNS_SERVER_IP=#{$worker_vms[:dns][:ip]}' > ~/.profile
+echo 'export DNS_SERVER_IP=#{$worker_vms[:dns][:ip]}' > ~/.profile
 SCRIPT
 
     provision_dns manager
