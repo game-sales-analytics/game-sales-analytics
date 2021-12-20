@@ -4,9 +4,12 @@
 		format json
 	}
 	auto_https off
-	admin caddy_monitoring:2019 {
-		origins localhost:2019
-		enforce_origin
+	admin off
+}
+
+:2020 {
+	metrics /metrics {
+		disable_openmetrics
 	}
 }
 
@@ -27,18 +30,10 @@
 	reverse_proxy chronograf:8888
 }
 
-:8080 {
-	basicauth bcrypt {
-		{$MONITORING_ADMIN_USER} {$MONITORING_ADMIN_PASSWORD}
-	}
-
-	reverse_proxy cadvisor:8080
-}
-
-:9090 {
-	basicauth bcrypt {
-		{$MONITORING_ADMIN_USER} {$MONITORING_ADMIN_PASSWORD}
-	}
+:9393 {
+	# basicauth bcrypt {
+	# 	{$MONITORING_ADMIN_USER} {$MONITORING_ADMIN_PASSWORD}
+	# }
 
 	reverse_proxy prometheus:9090
 }

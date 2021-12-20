@@ -1,32 +1,71 @@
 global:
-  scrape_interval: 5s
+  scrape_interval: 30s
+  scrape_timeout: 15s
 scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets:
+          - localhost:9090
   - job_name: node
-    scrape_interval: 10s
-    scrape_timeout: 5s
     static_configs:
       - targets:
-        - node_monitor:9100
+          - dns.internal:9100
+          - manager.internal:9100
+          - databases.internal:9100
+          - dbadmins.internal:9100
+          - monitor.internal:9100
+          - cache.internal:9100
+          - app1.internal:9100
+          - app2.internal:9100
+          - app3.internal:9100
+          - dmz1.internal:9100
+          - dmz2.internal:9100
+          - dmz3.internal:9100
+          - gateway1.internal:9100
+          - gateway2.internal:9100
   - job_name: cadvisor
-    scrape_interval: 5s
     static_configs:
       - targets:
-          - cadvisor:8080
+          - dns.internal:8080
+          - manager.internal:8080
+          - databases.internal:8080
+          - dbadmins.internal:8080
+          - monitor.internal:8080
+          - cache.internal:8080
+          - app1.internal:8080
+          - app2.internal:8080
+          - app3.internal:8080
+          - dmz1.internal:8080
+          - dmz2.internal:8080
+          - dmz3.internal:8080
+          - gateway1.internal:8080
+          - gateway2.internal:8080
   - job_name: disk-usage
-    scrape_interval: 20s
-    scrape_timeout: 10s
     static_configs:
       - targets:
-        - disk_usage_monitor:9995
+          - dns.internal:9995
+          - manager.internal:9995
+          - databases.internal:9995
+          - dbadmins.internal:9995
+          - monitor.internal:9995
+          - cache.internal:9995
+          - app1.internal:9995
+          - app2.internal:9995
+          - app3.internal:9995
+          - dmz1.internal:9995
+          - dmz2.internal:9995
+          - dmz3.internal:9995
+          - gateway1.internal:9995
+          - gateway2.internal:9995
   - job_name: caddy
     scrape_interval: 5s
     scrape_timeout: 2s
     static_configs:
       - targets:
-        - caddy:2018
+          - caddy:2020
   - job_name: grafana
-    scrape_interval: 15s
-    scrape_timeout: 5s
+    scrape_interval: 5s
+    scrape_timeout: 2s
     static_configs:
       - targets:
-        - grafana:3000
+          - monitor.internal:3000

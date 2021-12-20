@@ -1,134 +1,338 @@
+version: "3.9"
+networks:
+  net:
+    attachable: true
 services:
-  influxdb:
-    image: docker.io/library/influxdb:2.1
-    container_name: influxdb
-    networks:
-      - gsa
-    volumes:
-      - influxdb_data:/var/lib/influxdb2
-      - influxdb_config:/etc/influxdb2
-    environment:
-      DOCKER_INFLUXDB_INIT_MODE: setup
-      DOCKER_INFLUXDB_INIT_USERNAME: ${INFLUXDB_USERNAME:?}
-      DOCKER_INFLUXDB_INIT_PASSWORD: ${INFLUXDB_PASSWORD:?}
-      DOCKER_INFLUXDB_INIT_ORG: ${INFLUXDB_ORG:?}
-      DOCKER_INFLUXDB_INIT_BUCKET: ${INFLUXDB_BUCKET:?}
-      INFLUXD_HTTP_BIND_ADDRESS: influxdb:8086
+  nodemon:
+    image: quay.io/prometheus/node-exporter:latest
+    command:
+      - --path.rootfs=/host
+    hostname: nodemon
     healthcheck:
-      test: wget --quiet --tries=1 --spider http://influxdb:8086
+      test: wget --quiet --tries=1 --spider http://nodemon:9100
+      interval: 5s
+      timeout: 2s
+      retries: 5
+      start_period: 20s
+    networks:
+      - net
+    ports:
+      - target: 9100
+        published: 9100
+        protocol: tcp
+        mode: host
+    volumes:
+      - type: bind
+        source: /
+        target: /host
+        read_only: true
+        bind:
+          propagation: rslave
+    deploy:
+      endpoint_mode: vip
+      mode: global
+      restart_policy:
+        condition: on-failure
+        delay: 3s
+        max_attempts: 0
+        window: 10s
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    hostname: cadvisor
+    healthcheck:
+      test: wget --quiet --tries=1 --spider http://cadvisor:8080/containers/
+      interval: 5s
+      timeout: 2s
+      retries: 5
+      start_period: 5s
+    networks:
+      - net
+    ports:
+      - target: 8080
+        published: 8080
+        protocol: tcp
+        mode: host
+    volumes:
+      - type: bind
+        source: /
+        target: /rootfs
+        read_only: true
+      - type: bind
+        source: /var/run
+        target: /var/run
+        read_only: false
+      - type: bind
+        source: /sys
+        target: /sys
+        read_only: true
+      - type: bind
+        source: /var/lib/docker/
+        target: /var/lib/docker
+        read_only: true
+    deploy:
+      endpoint_mode: vip
+      mode: global
+      restart_policy:
+        condition: on-failure
+        delay: 3s
+        max_attempts: 0
+        window: 5s
+  disk_usage_monitor:
+    image: docker.io/xeptore/prometheus-disk-usage-exporter:latest
+    hostname: disk_usage_monitor
+    networks:
+      - net
+    command:
+      - --analyzed-path=/host
+      - --ignore-dirs=/host/proc,/host/dev,/host/sys,/host/run,/host/var/host/cache/host/rsnapshot
+    healthcheck:
+      test: wget --quiet --tries=1 --spider http://disk_usage_monitor:9995
       interval: 5s
       timeout: 2s
       retries: 2
-      start_period: 5s
-  chronograf:
-    image: docker.io/library/chronograf:1.9
-    container_name: chronograf
-    networks:
-      - gsa
+      start_period: 10s
+    ports:
+      - target: 9995
+        published: 9995
+        protocol: tcp
+        mode: host
     volumes:
-      - chronograf_data:/var/lib/chronograf
-    environment:
-      HOST: chronograf
-      PORT: 8888
-      INFLUXDB_URL: http://influxdb:8086
-    depends_on:
-      influxdb:
-        condition: service_healthy
-    healthcheck:
-      test: curl --fail --silent http://chronograf:8888
-      interval: 5s
-      timeout: 2s
-      retries: 2
-      start_period: 5s
+      - type: bind
+        source: /
+        target: /host
+        read_only: false
+    deploy:
+      endpoint_mode: vip
+      mode: global
+      restart_policy:
+        condition: on-failure
+        delay: 3s
+        max_attempts: 0
+        window: 5s
   prometheus:
     image: quay.io/prometheus/prometheus:latest
-    container_name: prometheus
-    networks:
-      - gsa
     command:
       - --config.file=/etc/prometheus/prometheus.yml
-    volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - prometheus_data:/prometheus
+    hostname: prometheus
     healthcheck:
       test: wget --quiet --tries=1 --spider http://prometheus:9090
       interval: 5s
       timeout: 2s
-      retries: 2
-      start_period: 5s
+      retries: 5
+      start_period: 10s
+    configs:
+      - source: prometheus
+        target: /etc/prometheus/prometheus.yml
+        uid: "65534"
+        gid: "65534"
+        mode: 0400
+    networks:
+      - net
+    dns: ${DNS_SERVER_IP:?}
+    volumes:
+      - type: volume
+        source: prometheus_data
+        target: /prometheus
+        read_only: false
+    deploy:
+      endpoint_mode: vip
+      placement:
+        constraints:
+          - node.role == worker
+          - node.labels.category == monitor
+        max_replicas_per_node: 1
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 3s
+        max_attempts: 0
+        window: 5s
+  influxdb:
+    image: docker.io/library/influxdb:2.1
+    hostname: influxdb
+    healthcheck:
+      test: wget --quiet --tries=1 --spider http://influxdb:8086
+      interval: 5s
+      timeout: 2s
+      retries: 5
+      start_period: 10s
+    networks:
+      - net
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      INFLUXD_HTTP_BIND_ADDRESS: 0.0.0.0:8086
+    env_file:
+      - .env.influxdb
+    volumes:
+      - type: volume
+        source: influxdb_data
+        target: /var/lib/influxdb2
+        read_only: false
+      - type: volume
+        source: influxdb_config
+        target: /etc/influxdb2
+        read_only: false
+    deploy:
+      endpoint_mode: vip
+      placement:
+        constraints:
+          - node.role == worker
+          - node.labels.category == monitor
+        max_replicas_per_node: 1
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 3s
+        max_attempts: 0
+        window: 5s
   grafana:
     image: docker.io/grafana/grafana:latest
-    container_name: grafana
-    networks:
-      - gsa
-    volumes:
-      - grafana_storage:/var/lib/grafana
-      - ./grafana.ini:/etc/grafana/custom.ini:ro
-    environment:
-      GF_INSTALL_PLUGINS: grafana-clock-panel,grafana-simple-json-datasource
-      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:?}
-      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?}
-      GF_USERS_ALLOW_SIGN_UP: false
+    hostname: grafana
     healthcheck:
       test: wget --quiet --tries=1 --spider http://grafana:3000
       interval: 5s
       timeout: 2s
-      retries: 2
-      start_period: 5s
-    depends_on:
-      prometheus:
-        condition: service_healthy
-  caddy_monitoring:
-    image: docker.io/library/caddy:2
-    container_name: caddy_monitoring
-    ports:
-      - 2019:2019
-      - 3000:3000
-      - 8086:8086
-      - 8888:8888
-      - 9090:9090
-    volumes:
-      - ./monitoring.Caddyfile:/etc/caddy/Caddyfile
-      - monitoring_caddy_data:/data
-      - monitoring_caddy_config:/config
+      retries: 5
+      start_period: 10s
+    networks:
+      - net
     environment:
-      MONITORING_ADMIN_USER: ${MONITORING_ADMIN_USER}
-      MONITORING_ADMIN_PASSWORD: ${MONITORING_ADMIN_PASSWORD}
-    restart: unless-stopped
+      GF_INSTALL_PLUGINS: grafana-clock-panel,grafana-simple-json-datasource
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    env_file:
+      - .env.grafana
+    configs:
+      - source: grafana
+        target: /etc/grafana/custom.ini
+        uid: "472"
+        gid: "0"
+        mode: 0400
+    volumes:
+      - type: volume
+        source: grafana_storage
+        target: /var/lib/grafana
+        read_only: false
+    deploy:
+      endpoint_mode: vip
+      placement:
+        constraints:
+          - node.role == worker
+          - node.labels.category == monitor
+        max_replicas_per_node: 1
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 3s
+        max_attempts: 0
+        window: 5s
+  chronograf:
+    image: docker.io/library/chronograf:1.9
+    hostname: chronograf
     healthcheck:
-      test: wget --quiet --tries=1 --spider http://caddy_monitoring:8787
+      test: curl -sf http://chronograf:8888
       interval: 5s
       timeout: 2s
-      retries: 2
-      start_period: 5s
+      retries: 5
+      start_period: 10s
     networks:
-      - gsa
-    depends_on:
-      grafana:
-        condition: service_healthy
-      prometheus:
-        condition: service_healthy
-      chronograf:
-        condition: service_healthy
-      influxdb:
-        condition: service_healthy
+      - net
+    environment:
+      INFLUXDB_URL: http://influxdb:8086
+      PORT: 8888
+      HOST: chronograf
+    env_file:
+      - .env.grafana
+    volumes:
+      - type: volume
+        source: chronograf_data
+        target: /var/lib/chronograf
+        read_only: false
+    deploy:
+      endpoint_mode: vip
+      placement:
+        constraints:
+          - node.role == worker
+          - node.labels.category == monitor
+        max_replicas_per_node: 1
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 3s
+        max_attempts: 0
+        window: 5s
+  caddy:
+    image: docker.io/library/caddy:2
+    networks:
+      - net
+    hostname: caddy
+    healthcheck:
+      test: wget --quiet --tries=1 --spider http://caddy:8787
+      interval: 5s
+      timeout: 2s
+      retries: 5
+      start_period: 3s
+    configs:
+      - source: caddy
+        target: /etc/caddy/Caddyfile
+        uid: "0"
+        gid: "0"
+        mode: 0400
+    volumes:
+      - type: volume
+        source: caddymon_data
+        target: /data
+        read_only: false
+      - type: volume
+        source: caddymon_config
+        target: /config
+        read_only: false
+    ports:
+      - target: 9393
+        published: 9393
+        protocol: tcp
+        mode: host
+      - target: 3000
+        published: 3000
+        protocol: tcp
+        mode: host
+      - target: 8086
+        published: 8086
+        protocol: tcp
+        mode: host
+      - target: 8888
+        published: 8888
+        protocol: tcp
+        mode: host
+    deploy:
+      endpoint_mode: vip
+      placement:
+        constraints:
+          - node.role == worker
+          - node.labels.category == monitor
+        max_replicas_per_node: 1
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 3s
+        max_attempts: 0
+        window: 5s
+configs:
+  caddy:
+    file: ./Caddyfile
+  prometheus:
+    file: ./prometheus.yml
+  grafana:
+    file: ./grafana.ini
 volumes:
-  influxdb_data:
-    name: influxdb_data
-  influxdb_config:
-    name: influxdb_config
-  kapacitor_data:
-    name: kapacitor_data
-  chronograf_data:
-    name: chronograf_data
-  grafana_storage:
-    name: grafana_storage
   prometheus_data:
-    name: prometheus_data
-  monitoring_caddy_data:
-    name: monitoring_caddy_data
-  monitoring_caddy_config:
-    name: monitoring_caddy_config
-networks:
-  gsa:
-    external: true
+  caddymon_data:
+  caddymon_config:
+  influxdb_data:
+  influxdb_config:
+  grafana_storage:
+  chronograf_data:
