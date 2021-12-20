@@ -1,6 +1,7 @@
 version: "3.9"
 networks:
   net:
+    name: mon_net
     attachable: true
 services:
   nodemon:
@@ -243,8 +244,6 @@ services:
       INFLUXDB_URL: http://influxdb:8086
       PORT: 8888
       HOST: chronograf
-    env_file:
-      - .env.grafana
     volumes:
       - type: volume
         source: chronograf_data
