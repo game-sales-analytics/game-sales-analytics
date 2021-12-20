@@ -45,12 +45,12 @@ Vagrant.configure("2") do |config|
     manager.vm.network "private_network", ip: $manager_vm[:ip]
 
     {
-      8181 => 8181,
-      8383 => 8383,
-      8585 => 8585,
-      9292 => 9292,
-      9090 => 9090,
-    }.each { |host, guest| manager.vm.network "forwarded_port", guest: guest, guest_ip: "127.0.0.1", host: host, host_ip: "127.0.0.1" }
+      8181 => { port: 8181, id: "app-usersdbadmin" },
+      8383 => { port: 8383, id: "app-swarmvisualizer" },
+      8585 => { port: 8585, id: "app-coredbadmin" },
+      9292 => { port: 9292, id: "app-gateway" },
+      9090 => { port: 9090, id: "app-prometheus" },
+    }.each { |host, guest| manager.vm.network "forwarded_port", id: guest[:id], guest: guest[:port], guest_ip: $manager_vm[:ip], host: host, host_ip: "127.0.0.1" }
 
     manager.vm.provision "install-apps", type: "shell", run: "once", privileged: true, inline: <<-SCRIPT
 set -ev
