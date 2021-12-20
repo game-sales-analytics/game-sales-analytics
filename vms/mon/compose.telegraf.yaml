@@ -1,0 +1,54 @@
+version: "3.9"
+networks:
+  net:
+    name: mon_net
+    external: true
+services:
+  telegraf:
+    image: docker.io/library/telegraf:1.21
+    command: --pprof-addr localhost:6161
+    hostname: '{{.Node.Hostname}}'
+    healthcheck:
+      test: wget --quiet --tries=1 --spider http://localhost:6161/debug/pprof/
+      interval: 5s
+      timeout: 2s
+      retries: 5
+      start_period: 5s
+    networks:
+      - net
+    environment:
+      HOST_ETC: /hostfs/etc
+      HOST_PROC: /hostfs/proc
+      HOST_SYS: /hostfs/sys
+      HOST_VAR: /hostfs/var
+      HOST_RUN: /hostfs/run
+      HOST_MOUNT_PREFIX: /hostfs
+      INFLUXDB_URL: http://influxdb:8086
+    env_file:
+      - .env.telegraf
+    configs:
+      - source: telegraf
+        target: /etc/telegraf/telegraf.conf
+        uid: "0"
+        gid: "0"
+        mode: 0444
+    volumes:
+      - type: bind
+        source: /
+        target: /hostfs
+        read_only: true
+      - type: bind
+        source: /var/run/docker.sock
+        target: /var/run/docker.sock
+        read_only: false
+    deploy:
+      endpoint_mode: vip
+      mode: global
+      restart_policy:
+        condition: on-failure
+        delay: 3s
+        max_attempts: 3
+        window: 5s
+configs:
+  telegraf:
+    file: ./telegraf.conf
