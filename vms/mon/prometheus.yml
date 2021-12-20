@@ -63,6 +63,9 @@ scrape_configs:
     static_configs:
       - targets:
           - caddy:2020
+          - dmz1.internal:2020
+          - dmz2.internal:2020
+          - dmz3.internal:2020
   - job_name: grafana
     scrape_interval: 5s
     scrape_timeout: 2s
