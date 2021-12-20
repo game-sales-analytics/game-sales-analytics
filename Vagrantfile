@@ -24,9 +24,9 @@ Vagrant.require_version ">= 2.2.19"
 
 Vagrant.configure("2") do |config|
   config.vm.box = "xeptore/alpine315-docker"
-  config.vm.box_version = "20211220.1.32"
+  config.vm.box_version = "20211220.10.33"
   config.vm.box_url = "https://vagrantcloud.com/xeptore/alpine315-docker"
-  config.vm.box_download_checksum = "eb631e14e8fe1f8c04c38cc67f332185975572d6fa8286ada28a6e4dacf74bb6a0492130ee66ee6017a53018ef6231df86e6bdc568f000b38119ca4b4ff5cded"
+  config.vm.box_download_checksum = "d7ecdf1ec72bc2f3cb3b28fdfc4753a30925ae2a3c3705b2277dff440e9a20473626d339bd6a0ad1d3a3c727b98149d6a253710eaf14569e357308de01abd3a2"
   config.vm.box_download_checksum_type = "sha512"
   config.vm.box_check_update = false
 
