@@ -263,6 +263,35 @@ services:
         delay: 3s
         max_attempts: 0
         window: 5s
+  swarmvisualizer:
+    image: docker.io/dockersamples/visualizer:latest
+    hostname: swarmvisualizer
+    healthcheck:
+      # test: curl -sf http://swarmvisualizer:8080
+      interval: 5s
+      timeout: 2s
+      retries: 5
+      start_period: 5s
+    networks:
+      - net
+    volumes:
+      - type: bind
+        source: /var/run/docker.sock
+        target: /var/run/docker.sock
+        read_only: false
+    deploy:
+      endpoint_mode: vip
+      placement:
+        constraints:
+          - node.role == manager
+        max_replicas_per_node: 1
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 3s
+        max_attempts: 4
+        window: 5s
   caddy:
     image: docker.io/library/caddy:2
     networks:
@@ -304,6 +333,10 @@ services:
         mode: host
       - target: 8888
         published: 8888
+        protocol: tcp
+        mode: host
+      - target: 8383
+        published: 8383
         protocol: tcp
         mode: host
     deploy:

@@ -37,3 +37,11 @@
 
 	reverse_proxy prometheus:9090
 }
+
+:8383 {
+	# basicauth bcrypt {
+	# 	{$MONITORING_ADMIN_USER} {$MONITORING_ADMIN_PASSWORD}
+	# }
+
+	reverse_proxy swarmvisualizer:8080
+}
