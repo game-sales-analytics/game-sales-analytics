@@ -42,7 +42,7 @@ Vagrant.configure("2") do |config|
   config.vm.define $manager_vm[:name], primary: true do |manager|
     manager.vm.hostname = "#{$manager_vm[:name]}.internal"
 
-    manager.vm.network "private_network", ip: $manager_vm[:ip]
+    manager.vm.network "private_network", ip: $manager_vm[:ip], virtualbox__intnet: "gsa-net"
 
     {
       8181 => { port: 8181, id: "app-usersdbadmin" },
@@ -68,7 +68,7 @@ SCRIPT
   config.vm.define $worker_vms[:dns][:name] do |dns|
     dns.vm.hostname = "#{$worker_vms[:dns][:name]}.internal"
 
-    dns.vm.network "private_network", ip: $worker_vms[:dns][:ip]
+    dns.vm.network "private_network", ip: $worker_vms[:dns][:ip], virtualbox__intnet: "gsa-net"
 
     dns.vm.provision "install-apps", type: "shell", run: "once", privileged: true, inline: <<-SCRIPT
 set -ev
@@ -100,7 +100,7 @@ SCRIPT
     config.vm.define name do |machine|
       machine.vm.hostname = "#{name}.internal"
 
-      machine.vm.network "private_network", ip: vm[:ip]
+      machine.vm.network "private_network", ip: vm[:ip], virtualbox__intnet: "gsa-net"
 
       provision_dns machine
 
