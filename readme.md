@@ -116,6 +116,7 @@ With default setup, a 4 core CPU and ~16GB memory would be enough. If you want t
 - [x] Fix automatic monitoring stack `$DNS_SERVER_IP` variable setup
 - [ ] Fix service startup ordering
 - [ ] Listen docker swarm manager only on private interface
+- [ ] Revise swarm services restart policy condition (shutting down a service due to service health check timeout, will result in `0` status code exit)
 - [x] Use internal network for swarm internal communication
 - [ ] Run swarm node vagrant commands in parallel
 - [ ] Enable secure access to admin dashboards
