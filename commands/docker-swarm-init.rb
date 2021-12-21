@@ -25,32 +25,31 @@ module VagrantPlugins
 
         $worker_vms.each_key do |m|
           puts "Joining machine '#{m}'..."
-          Process.wait spawn(
+          system(
             "vagrant",
             "ssh",
             "--command",
             swarm_join_command,
             "#{m}",
-            :err => "/dev/null",
-            STDOUT => STDOUT,
+            [:out, :err] => "/dev/null",
           )
         end
 
         $worker_vms.each_pair do |name, vm|
           vm[:labels].each do |label|
             puts "Labeling machine '#{name}' as '#{label}'..."
-            Process.wait spawn(
+            system(
               "vagrant",
               "ssh",
               "--command",
               "docker node update --label-add #{label} #{name}",
               $manager_vm[:name],
-              :err => "/dev/null",
+              [:out, :err] => "/dev/null",
             )
           end
         end
 
-        Process.wait spawn(
+        system(
           "vagrant",
           "upload-manager-files",
         )
