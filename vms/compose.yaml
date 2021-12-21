@@ -108,7 +108,7 @@ services:
           - node.labels.category == dba
       restart_policy:
         condition: any
-        delay: 10s
+        delay: 5s
         max_attempts: 38
         window: 5s
   coredbadmin:
