@@ -14,7 +14,7 @@ module VagrantPlugins
           "vagrant",
           "ssh",
           "--command",
-          "docker swarm init --advertise-addr=#{$manager_vm[:ip]} --availability=active --force-new-cluster --task-history-limit=10",
+          "docker swarm init --advertise-addr=#{$manager_vm[:ip]} --listen-addr=#{$manager_vm[:ip]}:2377 --availability=active --force-new-cluster --task-history-limit=10",
           $manager_vm[:name],
           :err => "/dev/null",
           STDOUT => w,
@@ -51,7 +51,7 @@ module VagrantPlugins
 
         system(
           "vagrant",
-          "upload-manager-files",
+          "upload-swarm-files",
         )
       end
     end

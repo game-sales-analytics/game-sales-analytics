@@ -3,7 +3,7 @@ networks:
   gsa:
 configs:
   caddy:
-    file: ./Caddyfile
+    file: ./apps/Caddyfile
 volumes:
   usersdb:
   coredb:
@@ -21,8 +21,8 @@ services:
       - dbs/.env.users
     healthcheck:
       test: mongo --username $$MONGODB_USERNAME --password $$MONGODB_PASSWORD --host usersdb --port $$MONGODB_PORT_NUMBER $$MONGODB_DATABASE --authenticationDatabase=$$MONGODB_DATABASE --quiet --eval 'db.runCommand("ping").ok'
-      interval: 3s
-      timeout: 2s
+      interval: 36s
+      timeout: 4s
       retries: 3
       start_period: 10s
     volumes:
@@ -42,7 +42,7 @@ services:
           - node.role == worker
           - node.labels.category == dbs
       restart_policy:
-        condition: on-failure
+        condition: any
         delay: 10s
         max_attempts: 38
         window: 5s
@@ -53,8 +53,8 @@ services:
       - dbs/.env.core
     healthcheck:
       test: pg_isready -t 5 -d $$POSTGRESQL_DATABASE -h coredb -p 5432 -U $$POSTGRESQL_USERNAME
-      interval: 5s
-      timeout: 2s
+      interval: 35s
+      timeout: 4s
       retries: 2
       start_period: 15s
     volumes:
@@ -74,7 +74,7 @@ services:
           - node.role == worker
           - node.labels.category == dbs
       restart_policy:
-        condition: on-failure
+        condition: any
         delay: 10s
         max_attempts: 38
         window: 15s
@@ -91,8 +91,8 @@ services:
       - dba/.env.users
     healthcheck:
       test: wget --quiet --tries=1 --spider --auth-no-challenge --http-user=$$ME_CONFIG_BASICAUTH_USERNAME --http-password=$$ME_CONFIG_BASICAUTH_PASSWORD http://usersdbadmin:8081/db/admin
-      interval: 5s
-      timeout: 2s
+      interval: 29s
+      timeout: 3s
       retries: 2
       start_period: 10s
     networks:
@@ -122,8 +122,8 @@ services:
       - dba/.env.core
     healthcheck:
       test: wget --quiet --tries=1 --spider http://coredbadmin:$$PGADMIN_LISTEN_PORT/login
-      interval: 5s
-      timeout: 2s
+      interval: 26s
+      timeout: 3s
       retries: 8
       start_period: 15s
     volumes:
@@ -163,8 +163,8 @@ services:
         - CMD
         - /ping
         - userssrv:50050
-      interval: 5s
-      timeout: 2s
+      interval: 35s
+      timeout: 4s
       retries: 8
       start_period: 10s
     networks:
@@ -172,14 +172,14 @@ services:
     deploy:
       endpoint_mode: vip
       mode: replicated
-      replicas: 3
+      replicas: 2
       placement:
         max_replicas_per_node: 1
         constraints:
           - node.role == worker
           - node.labels.category == app
       restart_policy:
-        condition: on-failure
+        condition: any
         delay: 10s
         max_attempts: 38
         window: 5s
@@ -197,8 +197,8 @@ services:
       - apps/.env.coresrv
     healthcheck:
       test: ./Ping http://coresrv:50052
-      interval: 5s
-      timeout: 2s
+      interval: 27s
+      timeout: 3s
       retries: 8
       start_period: 8s
     networks:
@@ -206,14 +206,14 @@ services:
     deploy:
       endpoint_mode: vip
       mode: replicated
-      replicas: 3
+      replicas: 2
       placement:
         max_replicas_per_node: 1
         constraints:
           - node.role == worker
           - node.labels.category == app
       restart_policy:
-        condition: on-failure
+        condition: any
         delay: 10s
         max_attempts: 38
         window: 5s
@@ -226,10 +226,10 @@ services:
       - apps/.env.cache
     healthcheck:
       test: redis-cli -h cache -p $$REDIS_PORT_NUMBER ping
-      interval: 5s
-      timeout: 2s
-      retries: 2
-      start_period: 3s
+      interval: 28s
+      timeout: 3s
+      retries: 4
+      start_period: 5s
     volumes:
       - type: volume
         source: redis_data
@@ -247,7 +247,7 @@ services:
           - node.role == worker
           - node.labels.category == cache
       restart_policy:
-        condition: on-failure
+        condition: any
         delay: 5s
         max_attempts: 38
         window: 5s
@@ -265,9 +265,9 @@ services:
       - apps/.env.gateway
     healthcheck:
       test: wget --quiet --tries=1 --spider http://gateway:9292/ping
-      interval: 5s
-      timeout: 2s
-      retries: 2
+      interval: 18s
+      timeout: 3s
+      retries: 4
       start_period: 6s
     volumes:
       - type: volume
@@ -279,29 +279,27 @@ services:
     deploy:
       endpoint_mode: vip
       mode: replicated
-      replicas: 2
+      replicas: 1
       placement:
         max_replicas_per_node: 1
         constraints:
           - node.role == worker
           - node.labels.category == gateway
       restart_policy:
-        condition: on-failure
+        condition: any
         delay: 5s
         max_attempts: 38
         window: 5s
   webserver:
     image: docker.io/library/caddy:2
     hostname: webserver
-    environment:
-      REDIS_PORT_NUMBER: 7658
     env_file:
       - apps/.env.webserver
     healthcheck:
       test: wget --quiet --tries=1 --spider http://webserver:8686
-      interval: 5s
-      timeout: 2s
-      retries: 2
+      interval: 26s
+      timeout: 3s
+      retries: 3
       start_period: 4s
     configs:
       - source: caddy
@@ -310,6 +308,10 @@ services:
         gid: "0"
         mode: 0400
     ports:
+      - target: 2020
+        published: 2020
+        protocol: tcp
+        mode: host
       - target: 8181
         published: 8181
         protocol: tcp
@@ -336,14 +338,14 @@ services:
     deploy:
       endpoint_mode: vip
       mode: replicated
-      replicas: 3
+      replicas: 2
       placement:
         max_replicas_per_node: 1
         constraints:
           - node.role == worker
           - node.labels.category == dmz
       restart_policy:
-        condition: on-failure
+        condition: any
         delay: 5s
         max_attempts: 38
         window: 5s
