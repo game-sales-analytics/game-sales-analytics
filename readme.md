@@ -33,11 +33,11 @@ Assuming `vagrant` and `vboxmanage` commands are accessible in your command line
 
    - Copy `vms/dba/.env.users.template` to `vms/dba/.env.users`
 
-   - Copy `vms/apps/.env.cache.template` to `vms/apps/.env.cache`
+   - Copy `vms/gsa/.env.cache.template` to `vms/gsa/.env.cache`
 
-   - Copy `vms/apps/.env.coresrv.template` to `vms/apps/.env.coresrv`
+   - Copy `vms/gsa/.env.coresrv.template` to `vms/gsa/.env.coresrv`
 
-   - Copy `vms/apps/.env.userssrv.template` to `vms/apps/.env.userssrv`
+   - Copy `vms/gsa/.env.userssrv.template` to `vms/gsa/.env.userssrv`
 
    Each one of these files is a `KEY=VALUE` pair of options. Fill each provided key with the proper value.
 

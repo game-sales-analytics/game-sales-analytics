@@ -5,7 +5,7 @@ networks:
     attachable: true
 configs:
   caddy:
-    file: ./apps/Caddyfile
+    file: ./gsa/Caddyfile
 volumes:
   usersdb:
   coredb:
@@ -159,7 +159,7 @@ services:
       DATABASE_PORT: 20321
       DATABASE_USE_AUTH: "true"
     env_file:
-      - apps/.env.userssrv
+      - gsa/.env.userssrv
     healthcheck:
       test:
         - CMD
@@ -196,7 +196,7 @@ services:
       POSTGRESQL_PORT: 5432
       USERS_SERVICE_ADDRESS: http://userssrv:50050
     env_file:
-      - apps/.env.coresrv
+      - gsa/.env.coresrv
     healthcheck:
       test: ./Ping http://coresrv:50052
       interval: 27s
@@ -225,7 +225,7 @@ services:
     environment:
       REDIS_PORT_NUMBER: 7658
     env_file:
-      - apps/.env.cache
+      - gsa/.env.cache
     healthcheck:
       test: redis-cli -h cache -p $$REDIS_PORT_NUMBER ping
       interval: 28s
@@ -263,8 +263,6 @@ services:
       GATEWAY_CORESRV_PORT: 50052
       GATEWAY_LISTEN_HOST: gateway
       GATEWAY_LISTEN_PORT: 9292
-    env_file:
-      - apps/.env.gateway
     healthcheck:
       test: wget --quiet --tries=1 --spider http://gateway:9292/ping
       interval: 18s
@@ -295,8 +293,6 @@ services:
   webserver:
     image: docker.io/library/caddy:2
     hostname: webserver
-    env_file:
-      - apps/.env.webserver
     healthcheck:
       test: wget --quiet --tries=1 --spider http://webserver:8686
       interval: 26s
