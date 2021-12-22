@@ -2,6 +2,22 @@
 
 ![Diagram](diagram.png)
 
+## TOC
+
+- [Setup](#setup)
+
+  - [Prerequisites](#prerequisites)
+
+  - [Run](#run)
+
+- [API Documentation](#api-documentation)
+
+- [Hardware Requirements](#hardware-requirements)
+
+- [Troubleshoot](#troubleshoot)
+
+- [TODOs](#todos)
+
 ## Setup
 
 ### Prerequisites
@@ -145,7 +161,7 @@ Assuming `vagrant` and VirtualBox (e.g., `vboxmanage`, `vboxheadless`) commands 
 
    - <http://localhost:3000>: [Grafana](https://grafana.com/) monitoring dashboard. Use the credentials set in `swarm/mon/.env.grafana` to login into the dashboard. Create a Prometheus connection and once connected to Prometheus, you can create dashboards as you need. Also, you can start by importing available dashboards at <https://grafana.com/grafana/dashboards/>.
 
-   - <http://localhost:8086>: [InfluxDB](https://www.influxdata.com/) dashboard. Use the credentials set in `swarm/mon/.env.influxdb` to login into the dashboard. Create a Telegraf connection API Token from **Data > Telegraf**. Click on the **+ Create Configuration** button, and activate **System** configuration. Click on *continue*, choose a name (and an optional description) for the Telegraf configuration. Click the **Create And Verify** button. Copy the generated token shown in format `export INFLUX_TOKEN=HERE_MUST_BE_THE_TOKEN`. Once you copied the Telegraf API Token, set it for `INFLUXDB_TELEGRAF_TOKEN` in `swarm/mon/.env.telegraf`. Upload it to `manager` machine using `vagrant upload-swarm-files`, then (re)start the Telegraf stack using the command mentioned [above](#run). After successful run, Telegraf will send the metrics from all nodes to InfluxDB, and you can reach the dashboards from InfluxDB Boards section.
+   - <http://localhost:8086>: [InfluxDB](https://www.influxdata.com/) dashboard. Use the credentials set in `swarm/mon/.env.influxdb` to login into the dashboard. Create a Telegraf connection API Token from **Data > Telegraf**. Click on the **+ Create Configuration** button, and activate **System** configuration. Click on _continue_, choose a name (and an optional description) for the Telegraf configuration. Click the **Create And Verify** button. Copy the generated token shown in format `export INFLUX_TOKEN=HERE_MUST_BE_THE_TOKEN`. Once you copied the Telegraf API Token, set it for `INFLUXDB_TELEGRAF_TOKEN` in `swarm/mon/.env.telegraf`. Upload it to `manager` machine using `vagrant upload-swarm-files`, then (re)start the Telegraf stack using the command mentioned [above](#run). After successful run, Telegraf will send the metrics from all nodes to InfluxDB, and you can reach the dashboards from InfluxDB Boards section.
 
    - <http://localhost:8181>: Users database admin dashboard
 
@@ -181,7 +197,19 @@ Postman collection for REST APIs is available at: <https://www.postman.com/xepto
 
 ## Hardware Requirements
 
-With default setup, a 4 core CPU and ~16GB memory would be enough. If you want to decrease the amount of memory, or number of CPU cores allocated to each virtual machine, you can do it in [`Vagrantfile`]('./../Vagrantfile). Of course there is no guarantee that the application works correctly after those changes!
+With default setup, a 4 core CPU and ~25GB memory would be enough. If you want to decrease the amount of memory, or number of CPU cores allocated to each virtual machine, you can do it in [`Vagrantfile`]('./../Vagrantfile). Of course there is no guarantee that the application works correctly after those changes!
+
+## Troubleshoot
+
+- Waiting for a long time, but there are still services or replicas waiting to run without any changes
+
+  You waited for a relatively long time, watching stack services list, and still there are services or replicas not being started. This might be due to slow download speed which should be fixed by waiting more until all necessary Docker images gets downloaded and run on virtual machines.
+
+  If you noticed there is nothing being downloaded (e.g., by checking your system network internet usage), but still there are services not being started, it might be because of reaching maximum retires for downloading Docker images. In this case you can simply remove the stack(s) using `docker stack rm STACK [STACK...]` command, and re-deploy it using the commands explained [above](#run).
+
+- Services are deployed and they are ready, but I cannot access one or some of them from my machine.
+
+  If listing stack services shows all the services are successfully deployed and in ready state, but you cannot reach some or any of them by hitting their URLs (e.g., receiving _connection reset_ error), there might be a bug with VirtualBox. One solution is to re-deploy the stack(s) which contain the service(s). For example, if accessing application APIs returns _connection reset_ error after some amount of time, remove the stack from `manager` machine, using `docker stack rm gsa`, wait about 1-2 minute for the stack to be completely removed from all swarm nodes, and re-deploy it using the command explained [above](#run).
 
 ## TODOs
 
