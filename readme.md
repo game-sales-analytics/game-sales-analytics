@@ -26,6 +26,8 @@
 
 - VirtualBox (`6.1.30r148432`): <https://download.virtualbox.org/virtualbox/6.1.30/>
 
+[toc ↑](#toc)
+
 ### Run
 
 Assuming `vagrant` and VirtualBox (e.g., `vboxmanage`, `vboxheadless`) commands are accessible from the command line:
@@ -191,13 +193,19 @@ Assuming `vagrant` and VirtualBox (e.g., `vboxmanage`, `vboxheadless`) commands 
 
    - <http://localhost:9393>: [Prometheus](https://prometheus.io/) dashboard. Use the username and **un-encrypted** version of the password you've already set for `MONITORING_ADMIN_PASSWORD` in `swarm/mon/.env.caddy` to log in.
 
+[toc ↑](#toc)
+
 ### API Documentation
 
 Postman collection for REST APIs is available at: <https://www.postman.com/xeptore/workspace/gsa/collection/6663032-e7ea02bf-4666-4820-a8ff-dfa3ecbf3fbe>
 
+[toc ↑](#toc)
+
 ## Hardware Requirements
 
 With default setup, a 4 core CPU and ~25GB memory would be enough. If you want to decrease the amount of memory, or number of CPU cores allocated to each virtual machine, you can do it in [`Vagrantfile`]('./../Vagrantfile). Of course there is no guarantee that the application works correctly after those changes!
+
+[toc ↑](#toc)
 
 ## Troubleshoot
 
@@ -211,6 +219,8 @@ With default setup, a 4 core CPU and ~25GB memory would be enough. If you want t
 
   If listing stack services shows all the services are successfully deployed and in ready state, but you cannot reach some or any of them by hitting their URLs (e.g., receiving _connection reset_ error), there might be a bug with VirtualBox. One solution is to re-deploy the stack(s) which contain the service(s). For example, if accessing application APIs returns _connection reset_ error after some amount of time, remove the stack from `manager` machine, using `docker stack rm gsa`, wait about 1-2 minute for the stack to be completely removed from all swarm nodes, and re-deploy it using the command explained [above](#run).
 
+[toc ↑](#toc)
+
 ## TODOs
 
 - [x] Fix automatic monitoring stack `$DNS_SERVER_IP` variable setup
@@ -223,3 +233,5 @@ With default setup, a 4 core CPU and ~25GB memory would be enough. If you want t
 - [x] Add docker swarm visualizer service health check test command
 - [x] Add _prepper_ job executor command
 - [ ] Add gRPC logo as the inter-service communication mechanism to the diagram
+
+[toc ↑](#toc)
