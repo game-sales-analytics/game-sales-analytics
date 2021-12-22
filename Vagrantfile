@@ -56,6 +56,15 @@ echo 'export DNS_SERVER_IP=#{$worker_vms[:dns][:ip]}' > ~/.profile
 echo 'export HISTCONTROL=ignoreboth,erasedups' > ~/.bashrc
 SCRIPT
 
+    manager.trigger.after [:up] do |trg|
+      trg.info = "Running Docker service restart trigger"
+      trg.name = "Docker service restart"
+      trg.run_remote = {
+        privileged: true,
+        inline: "rc-service docker restart"
+      }
+    end
+
     provision_dns manager
 
     manager.vm.provider "virtualbox" do |vb|
