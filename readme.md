@@ -8,50 +8,58 @@
 
 - Vagrant (`2.2.19`): <https://www.vagrantup.com/downloads>
 
-- VirtualBox (`6.1.30`): <https://download.virtualbox.org/virtualbox/6.1.30/>
+- VirtualBox (`6.1.30r148432`): <https://download.virtualbox.org/virtualbox/6.1.30/>
 
 ### Run
 
-Assuming `vagrant` and `vboxmanage` commands are accessible in your command line:
+Assuming `vagrant` and VirtualBox (e.g., `vboxmanage`, `vboxheadless`) commands are accessible from the command line:
 
-1. Clone the repository
+1. Download the repository
 
-   ```sh
-   git clone git@github.com:game-sales-analytics/game-sales-analytics.git game-sales-analytics
-   cd game-sales-analytics
-   ```
+   - If `git` installed on your machine, run:
+
+     ```sh
+     git clone git@github.com:game-sales-analytics/game-sales-analytics.git game-sales-analytics
+     cd game-sales-analytics
+     ```
+
+   - To download the project use the following URL:
+
+     <https://github.com/game-sales-analytics/game-sales-analytics/archive/refs/heads/main.zip>
+
+     and extract the archive file.
 
 2. Configure
 
    Set values for different application services. Copy each one of the following templates to their respective `.env` file as shown below:
 
-   - Copy `vms/dbs/.env.core.template` to `vms/dbs/.env.core`
+   - Copy `swarm/dbs/.env.core.template` to `swarm/dbs/.env.core`
 
-   - Copy `vms/dbs/.env.users.template` to `vms/dbs/.env.users`
+   - Copy `swarm/dbs/.env.users.template` to `swarm/dbs/.env.users`
 
-   - Copy `vms/dba/.env.core.template` to `vms/dba/.env.core`
+   - Copy `swarm/dba/.env.core.template` to `swarm/dba/.env.core`
 
-   - Copy `vms/dba/.env.users.template` to `vms/dba/.env.users`
+   - Copy `swarm/dba/.env.users.template` to `swarm/dba/.env.users`
 
-   - Copy `vms/gsa/.env.cache.template` to `vms/gsa/.env.cache`
+   - Copy `swarm/gsa/.env.cache.template` to `swarm/gsa/.env.cache`
 
-   - Copy `vms/gsa/.env.coresrv.template` to `vms/gsa/.env.coresrv`
+   - Copy `swarm/gsa/.env.coresrv.template` to `swarm/gsa/.env.coresrv`
 
-   - Copy `vms/gsa/.env.userssrv.template` to `vms/gsa/.env.userssrv`
+   - Copy `swarm/gsa/.env.userssrv.template` to `swarm/gsa/.env.userssrv`
 
    Each one of these files is a `KEY=VALUE` pair of options. Fill each provided key with the proper value.
 
    Consult their commented documentation for further information on what each field is and how they will be used.
 
-3. Start machines
+3. In the project directory, start the machines
 
    ```sh
    vagrant up
    ```
 
-   This command will download the base box image which is about ~1.5GB and depending on your internet speed, it might take few minutes to complete. After downloading the box, it will spin up the machines with the help of VirtualBox.
+   This command will download the base box image which is about ~250MB, and depending on your internet speed, it might take few minutes to complete. After downloading the box, it will spin up the machines with the help of VirtualBox.
 
-4. Create the Docker Swarm
+4. Initialize the Docker Swarm
 
    ```sh
    vagrant docker-swarm-init
@@ -65,43 +73,107 @@ Assuming `vagrant` and `vboxmanage` commands are accessible in your command line
 
    3. Uploads configuration files to `manager` machine.
 
-   4. Initializes the Swarm custom internal private network used for communications between nodes.
-
 5. Start Docker services
 
-   ```sh
-   vagrant docker-swarm-start
-   ```
+   1. Connect to `manager` machine:
 
-   This command downloads and starts the services in order. Depending on your internet connection speed, it might take some time to download Docker images.
+      ```sh
+      vagrant ssh manager
+      ```
 
-6. Visit the services
+   2. Go to swarm configuration directory:
+
+      ```sh
+      cd swarm
+      ```
+
+   3. Deploy GSA stack
+
+      ```sh
+      docker stack deploy --compose-file compose.gsa.yaml gsa
+      ```
+
+   4. Deploy Monitoring stack
+
+      ```sh
+      docker stack deploy --compose-file compose.mon.yaml mon
+      ```
+
+   5. Deploy Telegraf metrics collector
+
+      ```sh
+      docker stack deploy --compose-file compose.tel.yaml tel
+      ```
+
+   These commands download and run all the Docker images, and depending on your internet connection speed, it might take a while for stacks to become available and healthy. Meanwhile, you can check the state of stacks using the following commands:
+
+   - List of stacks:
+
+     ```sh
+     docker stack ls
+     ```
+
+   - List GSA stack services:
+
+     ```sh
+     docker stack services gsa
+     ```
+
+   - List Monitoring stack services:
+
+     ```sh
+     docker stack services mon
+     ```
+
+   - List Telegraf collector stack services:
+
+     ```sh
+     docker stack services tel
+     ```
+
+   - List of all created services:
+
+     ```sh
+     docker service ls
+     ```
+
+   You can see the deployment status, health status, and number of replicas of services using above list services commands. Once all the deployed replicas of services are ready and healthy, you can move to the next step.
+
+6. Accessing the services
 
    Using your favorite browser, you can reach following addresses:
 
-   - <http://localhost:8181>: Users service database admin dashboard
+   - <http://localhost:3000>: [Grafana](https://grafana.com/) monitoring dashboard. Use the credentials set in `swarm/mon/.env.grafana` to login into the dashboard. Create a Prometheus connection and once connected to Prometheus, you can create dashboards as you need. Also, you can start by importing available dashboards at <https://grafana.com/grafana/dashboards/>.
 
-     Use credentials set in `vms/dba/.env.users` to login to dashboard.
+   - <http://localhost:8086>: [InfluxDB](https://www.influxdata.com/) dashboard. Use the credentials set in `swarm/mon/.env.influxdb` to login into the dashboard. Create a Telegraf connection API Token from **Data > Telegraf**. Click on the **+ Create Configuration** button, and activate **System** configuration. Click on *continue*, choose a name (and an optional description) for the Telegraf configuration. Click the **Create And Verify** button. Copy the generated token shown in format `export INFLUX_TOKEN=HERE_MUST_BE_THE_TOKEN`. Once you copied the Telegraf API Token, set it for `INFLUXDB_TELEGRAF_TOKEN` in `swarm/mon/.env.telegraf`. Upload it to `manager` machine using `vagrant upload-swarm-files`, then (re)start the Telegraf stack using the command mentioned [above](#run). After successful run, Telegraf will send the metrics from all nodes to InfluxDB, and you can reach the dashboards from InfluxDB Boards section.
 
-   - <http://localhost:8585>: Core service database admin dashboard
+   - <http://localhost:8181>: Users database admin dashboard
 
-     Use credentials set in `vms/dba/.env.core` to login to dashboard.
+     Use credentials set in `swarm/dba/.env.users` to login into the dashboard.
 
-     After successful login, create a server with the following configurations:
+   - <http://localhost:8585>: Core database admin dashboard
+
+     Use credentials set in `swarm/dba/.env.core` to login into the dashboard.
+
+     After first successful login, create a server from the panel with the following configurations:
 
      - Server name: `CoreDB`
 
      - Host: `coredb`
 
-     - Database Name: Database name you have set in `vms/dbs/.env.core` (`POSTGRESQL_DATABASE`)
+     - Database Name: Database name you have set in `swarm/dbs/.env.core` (`POSTGRESQL_DATABASE`)
 
-     - Username: Application user's username you have set in `vms/dbs/.env.core` (`POSTGRESQL_USERNAME`)
+     - Username: Application user's username you have set in `swarm/dbs/.env.core` (`POSTGRESQL_USERNAME`)
 
-     - Password: Application user's password you have set in `vms/dbs/.env.core` (`POSTGRESQL_PASSWORD`)
+     - Password: Application user's password you have set in `swarm/dbs/.env.core` (`POSTGRESQL_PASSWORD`)
 
-   - <http://localhost:8383>: Docker Swarm Orchestrator visualizer service. You can see live graphical representation of the swarm at this address.
+   - <http://localhost:8383>: [Docker Swarm Visualizer](https://github.com/dockersamples/docker-swarm-visualizer) service. You can see live graphical representation of the swarm nodes, and running services on each node here. Use the username and **un-encrypted** version of the password you've already set for `MONITORING_ADMIN_PASSWORD` in `swarm/mon/.env.caddy` to log in.
 
-   Also, <http://localhost:9292> is exposed by the API web server which can be used for API communications.
+   - <http://localhost:8888>: [Chronograf](https://www.influxdata.com/time-series-platform/chronograf/) dashboard. It is a simpler version of InfluxDB dashboard with the only purpose of viewing metrics in dashboards. It connects to InfluxDB using an API Token and you can create visualization dashboards in Chronograf.
+
+   - <http://localhost:9292>: GSA API interface. You can use [Postman](#api-documentation) to interact with the APIs.
+
+   - <http://localhost:9393>: [Prometheus](https://prometheus.io/) dashboard. Use the username and **un-encrypted** version of the password you've already set for `MONITORING_ADMIN_PASSWORD` in `swarm/mon/.env.caddy` to log in.
 
 ### API Documentation
 
