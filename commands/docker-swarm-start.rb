@@ -13,7 +13,7 @@ module VagrantPlugins
           "vagrant",
           "ssh",
           "--command",
-          "cd vms && make start-all",
+          "cd swarm && make start-all",
           $manager_vm[:name],
           STDERR => STDERR,
           STDOUT => STDOUT,
