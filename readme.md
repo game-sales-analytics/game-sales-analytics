@@ -121,4 +121,4 @@ With default setup, a 4 core CPU and ~16GB memory would be enough. If you want t
 - [ ] Run swarm node vagrant commands in parallel
 - [ ] Enable secure access to admin dashboards
 - [x] Add docker swarm visualizer service health check test command
-- [ ] Add _prepper_ job executor command
+- [x] Add _prepper_ job executor command
