@@ -23,11 +23,11 @@ Assuming `vagrant` and VirtualBox (e.g., `vboxmanage`, `vboxheadless`) commands 
      cd game-sales-analytics
      ```
 
-   - To download the project use the following URL:
+   - Otherwise, to download the project use the following URL:
 
      <https://github.com/game-sales-analytics/game-sales-analytics/archive/refs/heads/main.zip>
 
-     and extract the archive file.
+     Then extract the archive file.
 
 2. Configure
 
@@ -194,3 +194,4 @@ With default setup, a 4 core CPU and ~16GB memory would be enough. If you want t
 - [x] Enable secure access to admin dashboards
 - [x] Add docker swarm visualizer service health check test command
 - [x] Add _prepper_ job executor command
+- [ ] Add gRPC logo as the inter-service communication mechanism to the diagram
