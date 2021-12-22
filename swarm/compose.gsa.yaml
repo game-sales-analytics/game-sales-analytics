@@ -1,6 +1,8 @@
 version: "3.9"
 networks:
   gsa:
+    name: gsa
+    attachable: true
 configs:
   caddy:
     file: ./apps/Caddyfile
