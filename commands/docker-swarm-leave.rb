@@ -9,17 +9,30 @@ module VagrantPlugins
       end
 
       def execute
+        threads = []
+
         $swarm_vms.each_key do |m|
-          puts "Leaving machine '#{m}'..."
-          system(
-            "vagrant",
-            "ssh",
-            "--command",
-            "docker swarm leave --force",
-            "#{m}",
-            [:out, :err] => "/dev/null",
-          )
+          threads.push Thread.new {
+            puts "Leaving node '#{m}'..."
+
+            system(
+              "vagrant",
+              "ssh",
+              "--no-tty",
+              "--machine-readable",
+              "--no-color",
+              "--command",
+              "docker swarm leave --force",
+              "#{m}",
+              "--",
+              "-T",
+              [:out, :err] => "/dev/null",
+            )
+            puts "Node '#{m}' left the swarm ✅"
+          }
         end
+
+        threads.each { |t| t.join }
       end
     end
 

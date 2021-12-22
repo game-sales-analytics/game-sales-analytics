@@ -16,6 +16,8 @@ module VagrantPlugins
           "--command",
           "docker swarm init --advertise-addr=#{$manager_vm[:ip]} --listen-addr=#{$manager_vm[:ip]}:2377 --availability=active --force-new-cluster --task-history-limit=10",
           $manager_vm[:name],
+          "--",
+          "-T",
           :err => "/dev/null",
           STDOUT => w,
         )
@@ -23,31 +25,45 @@ module VagrantPlugins
         swarm_join_command = r.read.lines.map(&:strip).delete_if { |line| line.empty? }.at(2).strip
         r.close
 
-        $worker_vms.each_key do |m|
-          puts "Joining machine '#{m}'..."
-          system(
-            "vagrant",
-            "ssh",
-            "--command",
-            swarm_join_command,
-            "#{m}",
-            [:out, :err] => "/dev/null",
-          )
-        end
+        threads = []
 
         $worker_vms.each_pair do |name, vm|
-          vm[:labels].each do |label|
-            puts "Labeling machine '#{name}' as '#{label}'..."
+          threads.push Thread.new {
+            puts "Joining node '#{name}'..."
             system(
               "vagrant",
               "ssh",
               "--command",
-              "docker node update --label-add #{label} #{name}",
-              $manager_vm[:name],
+              swarm_join_command,
+              "#{name}",
+              "--",
+              "-T",
               [:out, :err] => "/dev/null",
             )
-          end
+            puts "Node '#{name}' joined the swarm ✅"
+          }
         end
+
+        threads.each { |t| t.join }
+
+        label_command = $worker_vms
+          .map { |name, vm| vm[:labels].map { |l| { name: name, label: l } } }
+          .flatten(1)
+          .map { |set| "docker node update --label-add #{set[:label]} #{set[:name]}" }
+          .join("; ")
+
+        puts "Labeling nodes..."
+        system(
+          "vagrant",
+          "ssh",
+          "--command",
+          label_command,
+          $manager_vm[:name],
+          "--",
+          "-T",
+          [:out, :err] => "/dev/null",
+        )
+        puts "ٔNodes labeled ✅"
 
         system(
           "vagrant",

@@ -118,7 +118,7 @@ With default setup, a 4 core CPU and ~16GB memory would be enough. If you want t
 - [x] Listen docker swarm manager only on private interface
 - [x] Revise swarm services restart policy condition (shutting down a service due to service health check timeout, will result in `0` status code exit)
 - [x] Use internal network for swarm internal communication
-- [ ] Run swarm node vagrant commands in parallel
+- [x] Run swarm nodes vagrant commands in parallel
 - [x] Enable secure access to admin dashboards
 - [x] Add docker swarm visualizer service health check test command
 - [x] Add _prepper_ job executor command
