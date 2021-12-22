@@ -53,6 +53,7 @@ Vagrant.configure("2") do |config|
     manager.vm.provision "set-env", type: "shell", run: "once", privileged: false, inline: <<-SCRIPT
 set -ev
 echo 'export DNS_SERVER_IP=#{$worker_vms[:dns][:ip]}' > ~/.profile
+echo 'export HISTCONTROL=ignoreboth,erasedups' > ~/.bashrc
 SCRIPT
 
     provision_dns manager
@@ -62,37 +63,6 @@ SCRIPT
       vb.name = $manager_vm[:vb_name]
       vb.memory = $manager_vm[:memory]
       vb.cpus = $manager_vm[:cpus]
-    end
-  end
-
-  config.vm.define $worker_vms[:dns][:name] do |dns|
-    dns.vm.hostname = "#{$worker_vms[:dns][:name]}.internal"
-
-    dns.vm.network "private_network", ip: $worker_vms[:dns][:ip], virtualbox__intnet: "gsa-net"
-
-    dns.vm.provision "install-apps", type: "shell", run: "once", privileged: true, inline: <<-SCRIPT
-set -ev
-apk update
-apk upgrade
-apk add tinydns
-SCRIPT
-
-    dns.vm.provision "configure-tinydns", type: "shell", run: "once", privileged: true, inline: <<-SCRIPT
-set -ev
-echo 'IP=#{$worker_vms[:dns][:ip]}' > /etc/conf.d/tinydns
-cat > /etc/tinydns/data <<-DATA
-.internal:#{$worker_vms[:dns][:ip]}:a:259200
-#{$swarm_vms.map { |k, v| "=#{k}.internal:#{v[:ip]}:10800" }.join("\n")}
-DATA
-rc-update add tinydns default
-rc-service tinydns start
-SCRIPT
-
-    dns.vm.provider "virtualbox" do |vb|
-      vb.gui = false
-      vb.name = $worker_vms[:dns][:vb_name]
-      vb.memory = $worker_vms[:dns][:memory]
-      vb.cpus = $worker_vms[:dns][:cpus]
     end
   end
 
@@ -112,6 +82,26 @@ SCRIPT
       end
     end
   }
+
+  config.vm.define $worker_vms[:dns][:name] do |dns|
+    dns.vm.provision "install-apps", type: "shell", run: "once", privileged: true, inline: <<-SCRIPT
+set -ev
+apk update
+apk upgrade
+apk add tinydns
+SCRIPT
+
+    dns.vm.provision "configure-tinydns", type: "shell", run: "once", privileged: true, inline: <<-SCRIPT
+set -ev
+echo 'IP=#{$worker_vms[:dns][:ip]}' > /etc/conf.d/tinydns
+cat > /etc/tinydns/data <<-DATA
+.internal:#{$worker_vms[:dns][:ip]}:a:259200
+#{$swarm_vms.map { |k, v| "=#{k}.internal:#{v[:ip]}:10800" }.join("\n")}
+DATA
+rc-update add tinydns default
+rc-service tinydns start
+SCRIPT
+  end
 
   config.vm.define $worker_vms[:monitor][:name] do |monitor|
     {
