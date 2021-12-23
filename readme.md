@@ -233,5 +233,6 @@ With default setup, a 4 core CPU and ~25GB memory would be enough. If you want t
 - [x] Add docker swarm visualizer service health check test command
 - [x] Add _prepper_ job executor command
 - [ ] Add gRPC logo as the inter-service communication mechanism to the diagram
+- [ ] Fix DMZ nodes Caddy server Prometheus metrics scrap errors
 
 [toc ↑](#toc)
