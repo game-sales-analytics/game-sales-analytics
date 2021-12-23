@@ -157,7 +157,13 @@ Assuming `vagrant` and VirtualBox (e.g., `vboxmanage`, `vboxheadless`) commands 
 
    You can see the deployment status, health status, and number of replicas of services using above list services commands. Once all the deployed replicas of services are ready and healthy, you can move to the next step.
 
-6. Accessing the services
+6. Feed dataset
+
+   The `swarm/run-prepper.sh` script contains job service which uploads the dataset to [Core service](https://github.com/game-sales-analytics/coresrv/). On first run, it pulls [its Docker image](https://hub.docker.com/r/xeptore/gsa-prepper), and retries 10 times before giving up (simply re-run it if it fails even after retries).
+
+   You will only need to run it only once during each deployment.
+
+7. Accessing the services
 
    Using your favorite browser, you can reach following addresses:
 
