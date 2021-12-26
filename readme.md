@@ -75,7 +75,7 @@ Assuming `vagrant` and VirtualBox (e.g., `vboxmanage`, `vboxheadless`) commands 
    vagrant up
    ```
 
-   This command will download the base box image which is about ~250MB, and depending on your internet speed, it might take few minutes to complete. After downloading the box, it will spin up the machines with the help of VirtualBox.
+   This command will download the base box image which is about ~130MB, and depending on your internet speed, it might take few minutes to complete. After downloading the box, it will spin up the machines with the help of VirtualBox.
 
 4. Initialize the Docker Swarm
 
