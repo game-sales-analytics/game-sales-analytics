@@ -10,6 +10,8 @@
 
   - [Run](#run)
 
+    - [Cleanup](#cleanup)
+
 - [API Documentation](#api-documentation)
 
 - [Hardware Requirements](#hardware-requirements)
@@ -198,6 +200,62 @@ Assuming `vagrant` and VirtualBox (e.g., `vboxmanage`, `vboxheadless`) commands 
    - <http://localhost:9292>: GSA API interface. You can use [Postman](#api-documentation) to interact with the APIs.
 
    - <http://localhost:9393>: [Prometheus](https://prometheus.io/) dashboard. Use the username and **un-encrypted** version of the password you've already set for `MONITORING_ADMIN_PASSWORD` in `swarm/mon/.env.caddy` to log in.
+
+[toc ↑](#toc)
+
+#### Cleanup
+
+To cleanup all the state created by the swarm:
+
+1. If you have run [`prepper`](https://github.com/game-sales-analytics/prepper) service script, run the following command (in `manager` VM):
+
+   1. Connect to `manager` VM:
+
+      ```sh
+      docker service rm prepper
+      ```
+
+   2. Remove `prepper service`:
+
+      ```sh
+      docker service rm prepper
+      ```
+
+2. Remove Telegraf stack (in `manager` VM):
+
+   ```sh
+   docker stack rm tel
+   ```
+
+3. Remove Monitoring stack (in `manager` VM):
+
+   ```sh
+   docker stack rm mon
+   ```
+
+4. Remove GSA stack (in `manager` VM):
+
+   ```sh
+   docker stack rm gsa
+   ```
+
+5. (Optional) Remove any remaining Docker data from VMs (in host machine):
+
+   ```sh
+   vagrant docker-swarm-prune
+   ```
+
+6. Leave nodes from the swarm:
+
+   ```sh
+   vagrant docker-swarm-leave
+   ```
+
+7. Finally, to delete all the VMs:
+
+   ```sh
+   vagrant destroy --graceful --force
+   ```
 
 [toc ↑](#toc)
 
