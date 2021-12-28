@@ -24,9 +24,9 @@ Vagrant.require_version ">= 2.2.19"
 
 Vagrant.configure("2") do |config|
   config.vm.box = "xeptore/alpine315-docker"
-  config.vm.box_version = "20211227.1.37"
+  config.vm.box_version = "20211228.1.36"
   config.vm.box_url = "https://vagrantcloud.com/xeptore/alpine315-docker"
-  config.vm.box_download_checksum = "7060ebc6defb4f1491e025286f26af1e7a30f38815b3ba2dcedfe32dfcb15bbb03b0c555c42e2c15ff2d6bfd7481d6617ffbbd49a849aa40be37313203fa15d8"
+  config.vm.box_download_checksum = "78df0648e0c321a16a4783727d7822a7456ec8204bcddead7011583afa85921f141094b44a0e7c5e337dcf6e69fe4af786a69a7e51b881ec35c4d405b2a8b888"
   config.vm.box_download_checksum_type = "sha512"
 
   config.vm.allow_hosts_modification = true
@@ -58,7 +58,7 @@ SCRIPT
       trg.name = "Docker service restart"
       trg.run_remote = {
         privileged: true,
-        inline: "rc-service docker restart"
+        inline: "rc-service docker restart",
       }
     end
 
@@ -117,5 +117,26 @@ SCRIPT
       8888 => { port: 8888, id: "app-chronograf" },
       9393 => { port: 9393, id: "app-prometheus" },
     }.each { |host, guest| monitor.vm.network "forwarded_port", id: guest[:id], guest: guest[:port], guest_ip: $worker_vms[:monitor][:ip], host: host, host_ip: "127.0.0.1" }
+  end
+
+  config.vm.define $worker_vms[:sentry][:name] do |sentry|
+    sentry.vm.provision "install-pkgs", type: "shell", run: "once", privileged: true, inline: <<-SCRIPT
+set -ev
+apk update
+apk upgrade
+apk add docker-compose bash
+rm -rf /var/cache/apk/*
+SCRIPT
+
+    sentry.vm.provision "download-sentry", type: "shell", run: "once", privileged: false, inline: <<-SCRIPT
+set -ev
+wget https://github.com/getsentry/self-hosted/archive/refs/tags/21.12.0.tar.gz
+tar -xzf 21.12.0.tar.gz
+rm 21.12.0.tar.gz
+SCRIPT
+
+    {
+      9000 => { port: 9000, id: "app-sentry" },
+    }.each { |host, guest| sentry.vm.network "forwarded_port", id: guest[:id], guest: guest[:port], guest_ip: $worker_vms[:sentry][:ip], host: host, host_ip: "127.0.0.1" }
   end
 end
