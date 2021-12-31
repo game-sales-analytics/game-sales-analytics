@@ -10,6 +10,7 @@ module VagrantPlugins
 
       def execute
         r, w = IO.pipe
+        puts "Initializing swarm in manager vm..."
         Process.wait spawn(
           "vagrant",
           "ssh",
@@ -24,6 +25,7 @@ module VagrantPlugins
         w.close
         swarm_join_command = r.read.lines.map(&:strip).delete_if { |line| line.empty? }.at(2).strip
         r.close
+        puts "Swarm initialized ✅"
 
         threads = []
 
