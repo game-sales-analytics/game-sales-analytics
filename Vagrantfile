@@ -24,9 +24,9 @@ Vagrant.require_version ">= 2.2.19"
 
 Vagrant.configure("2") do |config|
   config.vm.box = "xeptore/alpine315-docker"
-  config.vm.box_version = "20211229.1.36"
+  config.vm.box_version = "20211231.6.42"
   config.vm.box_url = "https://vagrantcloud.com/xeptore/alpine315-docker"
-  config.vm.box_download_checksum = "0c231bf14fbfeb9c7458aa0c843fe95948095880993618ef0bc7438727e4871a9ab5e87725956aca25a6d2e4d091fa715f6963ce50cc54e30ca338cdb0a29037"
+  config.vm.box_download_checksum = "9e1d68e7ddac6f82838aa8ec40919c91061cb4b2a8eb41e41e882a8546a33c85fb07eec0fe318f4a1f1e391318f916d346dc05ad123f542d3058c9a228bbfee5"
   config.vm.box_download_checksum_type = "sha512"
 
   config.vm.allow_hosts_modification = true
@@ -34,6 +34,15 @@ Vagrant.configure("2") do |config|
   config.vm.provider "virtualbox" do |v|
     v.linked_clone = true
     v.check_guest_additions = false
+  end
+
+  config.trigger.after [:up, :reload] do |trg|
+    trg.info = "Restarting eth1 internal network interface"
+    trg.name = "eth1 internal network restart"
+    trg.run_remote = {
+      privileged: true,
+      inline: "ifdown eth1 && ifup eth1",
+    }
   end
 
   config.vm.define $manager_vm[:name], primary: true do |manager|
@@ -130,7 +139,7 @@ SCRIPT
 
     sentry.vm.provision "download-sentry", type: "shell", run: "once", privileged: false, inline: <<-SCRIPT
 set -ev
-wget https://github.com/getsentry/self-hosted/archive/refs/tags/21.12.0.tar.gz
+wget -nv https://github.com/getsentry/self-hosted/archive/refs/tags/21.12.0.tar.gz
 tar -xzf 21.12.0.tar.gz
 rm 21.12.0.tar.gz
 SCRIPT
