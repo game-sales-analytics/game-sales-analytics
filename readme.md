@@ -49,7 +49,65 @@ Assuming `vagrant` and VirtualBox (e.g., `vboxmanage`, `vboxheadless`) commands 
 
      Then extract the archive file.
 
-2. Configure
+2. In the project directory, start the machines
+
+   ```sh
+   vagrant up
+   ```
+
+   This command will download the base box image which is about ~130MB, and depending on your internet speed, it might take few minutes to complete. After downloading the box, it will spin up the machines with the help of VirtualBox.
+
+3. Initialize the Docker Swarm
+
+   ```sh
+   vagrant docker-swarm-init
+   ```
+
+   It:
+
+   1. Creates the Docker Swarm in `manager` machine.
+
+   2. Joins all the worker machines to the Swarm.
+
+   3. Uploads configuration files to `manager` machine.
+
+4. Setup [Sentry](https://sentry.io):
+
+   1. Connect to `sentry` vm:
+
+      ```sh
+      vagrant ssh sentry
+      ```
+
+   2. Install Sentry
+
+      ```sh
+      cd self-hosted-21.12.0/
+      ./install.sh
+      ```
+
+   3. Configure
+
+      ```sh
+      sed -i s/"^# mail.backend: 'smtp'"/"mail.backend: 'dummy'"/ sentry/config.yml
+      sed -i s/"^mail.host: 'smtp'$"/"# mail.host: 'smtp'"/ sentry/config.yml
+      ```
+
+   4. Start
+
+      ```sh
+      docker-compose up -d
+      ```
+
+   5. Setup
+
+      Once Sentry becomes available, head over to <http://localhost:9000>. It first asks for the first start configurations and options. Leave them as their defaults and proceed.
+
+      Go to _Projects > internal > Settings (gear icon) > DSN_. Copy the DSN and use it for configuring other services. **Remember** to replace the `localhost` in the DSN with `sentry.internal` when used for configuring other services.
+
+   You can later see performance metrics of services in _Performance_ view of the project.
+
+5. Configure
 
    Set values for different application services. Copy each one of the following templates to their respective `.env` file as shown below:
 
@@ -71,29 +129,7 @@ Assuming `vagrant` and VirtualBox (e.g., `vboxmanage`, `vboxheadless`) commands 
 
    Consult their commented documentation for further information on what each field is and how they will be used.
 
-3. In the project directory, start the machines
-
-   ```sh
-   vagrant up
-   ```
-
-   This command will download the base box image which is about ~130MB, and depending on your internet speed, it might take few minutes to complete. After downloading the box, it will spin up the machines with the help of VirtualBox.
-
-4. Initialize the Docker Swarm
-
-   ```sh
-   vagrant docker-swarm-init
-   ```
-
-   It:
-
-   1. Creates the Docker Swarm in `manager` machine.
-
-   2. Joins all the worker machines to the Swarm.
-
-   3. Uploads configuration files to `manager` machine.
-
-5. Start Docker services
+6. Start Docker services
 
    1. Connect to `manager` machine:
 
@@ -159,13 +195,13 @@ Assuming `vagrant` and VirtualBox (e.g., `vboxmanage`, `vboxheadless`) commands 
 
    You can see the deployment status, health status, and number of replicas of services using above list services commands. Once all the deployed replicas of services are ready and healthy, you can move to the next step.
 
-6. Feed dataset
+7. Feed dataset
 
    The `swarm/run-prepper.sh` script contains job service which uploads the dataset to [Core service](https://github.com/game-sales-analytics/coresrv/). On first run, it pulls [its Docker image](https://hub.docker.com/r/xeptore/gsa-prepper), and retries 10 times before giving up (simply re-run it if it fails even after retries).
 
    You will only need to run it only once during each deployment.
 
-7. Accessing the services
+8. Accessing the services
 
    Using your favorite browser, you can reach following addresses:
 
@@ -197,6 +233,8 @@ Assuming `vagrant` and VirtualBox (e.g., `vboxmanage`, `vboxheadless`) commands 
 
    - <http://localhost:8888>: [Chronograf](https://www.influxdata.com/time-series-platform/chronograf/) dashboard. It is a simpler version of InfluxDB dashboard with the only purpose of viewing metrics in dashboards. It connects to InfluxDB using an API Token and you can create visualization dashboards in Chronograf.
 
+   - <http://localhost:9000>: Sentry dashboard.
+
    - <http://localhost:9292>: GSA API interface. You can use [Postman](#api-documentation) to interact with the APIs.
 
    - <http://localhost:9393>: [Prometheus](https://prometheus.io/) dashboard. Use the username and **un-encrypted** version of the password you've already set for `MONITORING_ADMIN_PASSWORD` in `swarm/mon/.env.caddy` to log in.
@@ -221,37 +259,47 @@ To cleanup all the state created by the swarm:
       docker service rm prepper
       ```
 
-2. Remove Telegraf stack (in `manager` VM):
+2. Stop and remove Sentry containers (in `sentry` vm):
+
+   ```sh
+   cd self-hosted-21.12.0/
+   docker-compose down --rmi local
+   docker container prune -f
+   docker network prune -f
+   docker volume prune -f
+   ```
+
+3. Remove Telegraf stack (in `manager` VM):
 
    ```sh
    docker stack rm tel
    ```
 
-3. Remove Monitoring stack (in `manager` VM):
+4. Remove Monitoring stack (in `manager` VM):
 
    ```sh
    docker stack rm mon
    ```
 
-4. Remove GSA stack (in `manager` VM):
+5. Remove GSA stack (in `manager` VM):
 
    ```sh
    docker stack rm gsa
    ```
 
-5. (Optional) Remove any remaining Docker data from VMs (in host machine):
+6. (Optional) Remove any remaining Docker data from VMs (in host machine):
 
    ```sh
    vagrant docker-swarm-prune
    ```
 
-6. Leave nodes from the swarm:
+7. Leave nodes from the swarm:
 
    ```sh
    vagrant docker-swarm-leave
    ```
 
-7. Finally, to delete all the VMs:
+8. Finally, to delete all the VMs:
 
    ```sh
    vagrant destroy --graceful --force
@@ -296,6 +344,7 @@ With default setup, a 4 core CPU and ~25GB memory would be enough. If you want t
 - [x] Enable secure access to admin dashboards
 - [x] Add docker swarm visualizer service health check test command
 - [x] Add _prepper_ job executor command
+- [x] Add Sentry setup section
 - [ ] Add gRPC logo as the inter-service communication mechanism to the diagram
 - [ ] Fix DMZ nodes Caddy server Prometheus metrics scrap errors
 
