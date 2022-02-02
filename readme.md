@@ -26,7 +26,7 @@
 
 - Vagrant (`2.2.19`): <https://www.vagrantup.com/downloads>
 
-- VirtualBox (`6.1.30r148432`): <https://download.virtualbox.org/virtualbox/6.1.30/>
+- VirtualBox (`6.1.32r149290`): <https://download.virtualbox.org/virtualbox/6.1.32/>
 
 [toc ↑](#toc)
 
