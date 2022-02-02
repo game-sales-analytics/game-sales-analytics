@@ -139,9 +139,9 @@ SCRIPT
 
     sentry.vm.provision "download-sentry", type: "shell", run: "once", privileged: false, inline: <<-SCRIPT
 set -ev
-wget -nv https://github.com/getsentry/self-hosted/archive/refs/tags/21.12.0.tar.gz
-tar -xzf 21.12.0.tar.gz
-rm 21.12.0.tar.gz
+wget -nv https://github.com/getsentry/self-hosted/archive/refs/tags/22.1.0.tar.gz
+tar -xzf 22.1.0.tar.gz
+rm 22.1.0.tar.gz
 SCRIPT
 
     {
